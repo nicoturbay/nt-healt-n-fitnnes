@@ -1,8 +1,7 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
-import { today, formatDate, sortByDateDesc } from '../utils/date'
-import { PRESET_EXERCISES } from '../data/exercises'
-import { Plus, Trash2, TrendingUp, Trophy } from 'lucide-react'
+import { today, formatDate } from '../utils/date'
+import { Plus, Trash2, Camera, Scale, TrendingUp, ZoomIn, X } from 'lucide-react'
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts'
@@ -12,7 +11,7 @@ const CustomTooltip = ({ active, payload, label }) => {
     return (
       <div className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm">
         <p className="text-gray-400">{label}</p>
-        <p className="text-white font-semibold">{payload[0].value}</p>
+        <p className="text-white font-semibold">{payload[0].value} lbs</p>
       </div>
     )
   }
@@ -20,242 +19,198 @@ const CustomTooltip = ({ active, payload, label }) => {
 }
 
 export default function Progress() {
-  const [weightLog, setWeightLog] = useLocalStorage('weightLog', [])
-  const [prLog, setPrLog] = useLocalStorage('prLog', [])
-  const [weightInput, setWeightInput] = useState('')
-  const [weightDate, setWeightDate] = useState(today())
-  const [prExercise, setPrExercise] = useState('')
-  const [prWeight, setPrWeight] = useState('')
-  const [prReps, setPrReps] = useState('')
-  const [prDate, setPrDate] = useState(today())
-  const [tab, setTab] = useState('weight')
+  const [progressEntries, setProgressEntries] = useLocalStorage('progressEntries', [])
+  const [lightbox, setLightbox] = useState(null)
+  const [showForm, setShowForm] = useState(false)
+  const [form, setForm] = useState({ date: today(), weight: '', note: '', photos: [] })
+  const fileRef = useRef()
 
-  const addWeight = () => {
-    if (!weightInput) return
-    const entry = { id: Date.now(), date: weightDate, weight: parseFloat(weightInput) }
-    setWeightLog(prev => sortByDateDesc([entry, ...prev.filter(e => e.date !== weightDate)]))
-    setWeightInput('')
-  }
-
-  const addPR = () => {
-    if (!prExercise || !prWeight) return
-    const entry = { id: Date.now(), date: prDate, exercise: prExercise, weight: parseFloat(prWeight), reps: parseInt(prReps) || 1 }
-    setPrLog(prev => sortByDateDesc([entry, ...prev]))
-    setPrWeight('')
-    setPrReps('')
-  }
-
-  const weightChartData = [...weightLog]
-    .sort((a, b) => new Date(a.date) - new Date(b.date))
-    .slice(-30)
-    .map(e => ({ date: formatDate(e.date), weight: e.weight }))
-
-  // Best PR per exercise
-  const bestPRs = prLog.reduce((acc, pr) => {
-    if (!acc[pr.exercise] || pr.weight > acc[pr.exercise].weight) {
-      acc[pr.exercise] = pr
+  const addEntry = () => {
+    if (!form.weight && !form.note && !form.photos.length) return
+    const entry = {
+      id: Date.now(),
+      date: form.date,
+      weight: form.weight ? parseFloat(form.weight) : null,
+      note: form.note,
+      photos: form.photos,
+      source: 'manual',
     }
-    return acc
-  }, {})
+    setProgressEntries(prev => [entry, ...prev].sort((a, b) => new Date(b.date) - new Date(a.date)))
+    setForm({ date: today(), weight: '', note: '', photos: [] })
+    setShowForm(false)
+  }
 
-  const prExercises = [...new Set([...PRESET_EXERCISES.map(e => e.name)])]
+  const handlePhotos = (files) => {
+    Array.from(files).forEach(file => {
+      if (!file.type.startsWith('image/')) return
+      const reader = new FileReader()
+      reader.onload = e => {
+        setForm(f => ({ ...f, photos: [...f.photos, { src: e.target.result, name: file.name }] }))
+      }
+      reader.readAsDataURL(file)
+    })
+  }
+
+  const deleteEntry = (id) => setProgressEntries(prev => prev.filter(e => e.id !== id))
+
+  // Chart data
+  const weightEntries = progressEntries
+    .filter(e => e.weight)
+    .sort((a, b) => new Date(a.date) - new Date(b.date))
+    .slice(-20)
+    .map(e => ({ date: formatDate(e.date), weight: e.weight }))
 
   return (
     <div className="space-y-5">
-      <h1 className="text-2xl font-bold">Progress</h1>
-
-      {/* Tabs */}
-      <div className="flex bg-gray-900 rounded-xl p-1 gap-1">
-        {[['weight', 'Body Weight'], ['pr', 'Personal Records']].map(([key, label]) => (
-          <button
-            key={key}
-            onClick={() => setTab(key)}
-            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
-              tab === key ? 'bg-green-500 text-black' : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            {label}
-          </button>
-        ))}
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Progress</h1>
+        <button onClick={() => setShowForm(e => !e)} className="btn-primary flex items-center gap-1.5 py-2 px-3 text-sm">
+          <Plus size={15} /> Log Update
+        </button>
       </div>
 
-      {tab === 'weight' && (
-        <div className="space-y-4">
-          {/* Log weight */}
-          <div className="card space-y-3">
-            <p className="font-semibold">Log Weight</p>
-            <div className="flex gap-2">
-              <div className="flex-1">
-                <label className="label">Date</label>
-                <input className="input" type="date" value={weightDate} onChange={e => setWeightDate(e.target.value)} />
-              </div>
-              <div className="flex-1">
-                <label className="label">Weight (lbs)</label>
-                <input
-                  className="input"
-                  type="number"
-                  placeholder="175"
-                  value={weightInput}
-                  onChange={e => setWeightInput(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && addWeight()}
-                />
-              </div>
-            </div>
-            <button onClick={addWeight} className="btn-primary w-full flex items-center justify-center gap-2">
-              <Plus size={16} /> Log
-            </button>
-          </div>
+      {/* Channel note */}
+      <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl px-4 py-3">
+        <p className="text-blue-400 text-xs font-medium mb-0.5">Automatic Progress Tracking</p>
+        <p className="text-gray-400 text-xs">
+          Send photos and measurements to <span className="text-blue-400">#progress</span> and Clawckie will log them here automatically.
+        </p>
+      </div>
 
-          {/* Chart */}
-          {weightChartData.length > 1 && (
-            <div className="card">
-              <p className="font-semibold mb-4">Weight Trend (last 30 entries)</p>
-              <ResponsiveContainer width="100%" height={200}>
-                <LineChart data={weightChartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
-                  <XAxis dataKey="date" tick={{ fill: '#6b7280', fontSize: 10 }} tickLine={false} />
-                  <YAxis
-                    tick={{ fill: '#6b7280', fontSize: 10 }}
-                    tickLine={false}
-                    domain={['auto', 'auto']}
-                    width={35}
-                  />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Line
-                    type="monotone"
-                    dataKey="weight"
-                    stroke="#22c55e"
-                    strokeWidth={2}
-                    dot={{ fill: '#22c55e', r: 3 }}
-                    activeDot={{ r: 5 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-
-          {/* History */}
-          {weightLog.length > 0 && (
-            <div className="card">
-              <p className="font-semibold mb-3">History</p>
-              <div className="space-y-2 max-h-64 overflow-y-auto">
-                {sortByDateDesc(weightLog).map(entry => (
-                  <div key={entry.id} className="flex justify-between items-center py-1 border-b border-gray-800 last:border-0">
-                    <span className="text-sm text-gray-400">{formatDate(entry.date)}</span>
-                    <div className="flex items-center gap-3">
-                      <span className="font-semibold">{entry.weight} lbs</span>
-                      <button
-                        onClick={() => setWeightLog(prev => prev.filter(e => e.id !== entry.id))}
-                        className="text-gray-700 hover:text-red-400 transition-colors"
-                      >
-                        <Trash2 size={13} />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {!weightLog.length && (
-            <div className="card flex flex-col items-center py-10 text-center">
-              <TrendingUp size={32} className="text-gray-700 mb-2" />
-              <p className="text-gray-500 text-sm">No weight logged yet.</p>
-            </div>
-          )}
+      {/* Weight chart */}
+      {weightEntries.length > 1 && (
+        <div className="card">
+          <p className="font-semibold mb-4">Weight Trend</p>
+          <ResponsiveContainer width="100%" height={180}>
+            <LineChart data={weightEntries}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
+              <XAxis dataKey="date" tick={{ fill: '#6b7280', fontSize: 10 }} tickLine={false} />
+              <YAxis tick={{ fill: '#6b7280', fontSize: 10 }} tickLine={false} domain={['auto', 'auto']} width={35} />
+              <Tooltip content={<CustomTooltip />} />
+              <Line type="monotone" dataKey="weight" stroke="#22c55e" strokeWidth={2} dot={{ fill: '#22c55e', r: 3 }} activeDot={{ r: 5 }} />
+            </LineChart>
+          </ResponsiveContainer>
         </div>
       )}
 
-      {tab === 'pr' && (
-        <div className="space-y-4">
-          {/* Log PR */}
-          <div className="card space-y-3">
-            <p className="font-semibold">Log PR</p>
+      {/* Log form */}
+      {showForm && (
+        <div className="card space-y-3">
+          <p className="font-semibold">Log Progress Update</p>
+          <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="label">Exercise</label>
-              <input
-                className="input"
-                list="pr-exercises"
-                placeholder="Select or type exercise..."
-                value={prExercise}
-                onChange={e => setPrExercise(e.target.value)}
-              />
-              <datalist id="pr-exercises">
-                {prExercises.map(e => <option key={e} value={e} />)}
-              </datalist>
+              <label className="label">Date</label>
+              <input className="input" type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
             </div>
-            <div className="grid grid-cols-3 gap-2">
-              <div>
-                <label className="label">Date</label>
-                <input className="input" type="date" value={prDate} onChange={e => setPrDate(e.target.value)} />
-              </div>
-              <div>
-                <label className="label">Weight (lbs)</label>
-                <input className="input" type="number" placeholder="225" value={prWeight} onChange={e => setPrWeight(e.target.value)} />
-              </div>
-              <div>
-                <label className="label">Reps</label>
-                <input className="input" type="number" placeholder="1" value={prReps} onChange={e => setPrReps(e.target.value)} />
-              </div>
+            <div>
+              <label className="label">Weight (lbs)</label>
+              <input className="input" type="number" placeholder="175" value={form.weight} onChange={e => setForm(f => ({ ...f, weight: e.target.value }))} />
             </div>
-            <button onClick={addPR} className="btn-primary w-full flex items-center justify-center gap-2">
-              <Plus size={16} /> Save PR
+          </div>
+          <div>
+            <label className="label">Note</label>
+            <textarea className="input resize-none" rows={2} placeholder="How are you feeling? Any measurements?" value={form.note} onChange={e => setForm(f => ({ ...f, note: e.target.value }))} />
+          </div>
+          <div>
+            <label className="label">Photos</label>
+            <div
+              onClick={() => fileRef.current.click()}
+              className="border-2 border-dashed border-gray-700 rounded-xl p-5 flex flex-col items-center gap-1.5 cursor-pointer hover:border-green-500/40 transition-colors"
+            >
+              <Camera size={20} className="text-gray-600" />
+              <p className="text-xs text-gray-500">Tap to add progress photos</p>
+            </div>
+            <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={e => { handlePhotos(e.target.files); e.target.value = '' }} />
+            {form.photos.length > 0 && (
+              <div className="flex gap-2 mt-2 flex-wrap">
+                {form.photos.map((p, i) => (
+                  <div key={i} className="relative w-16 h-16 rounded-xl overflow-hidden">
+                    <img src={p.src} className="w-full h-full object-cover" alt="" />
+                    <button onClick={() => setForm(f => ({ ...f, photos: f.photos.filter((_, idx) => idx !== i) }))}
+                      className="absolute top-0.5 right-0.5 bg-black/70 rounded-full p-0.5">
+                      <X size={10} className="text-white" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <button onClick={() => setShowForm(false)} className="btn-secondary flex-1">Cancel</button>
+            <button onClick={addEntry} className="btn-primary flex-1">Save Update</button>
+          </div>
+        </div>
+      )}
+
+      {/* Timeline */}
+      {progressEntries.length === 0 ? (
+        <div className="card flex flex-col items-center py-12 text-center">
+          <TrendingUp size={36} className="text-gray-700 mb-3" />
+          <p className="font-medium text-gray-400">No progress logged yet</p>
+          <p className="text-gray-600 text-sm mt-1">Add your first update or send a photo to #progress</p>
+        </div>
+      ) : (
+        <div className="relative">
+          {/* Vertical line */}
+          <div className="absolute left-[15px] top-2 bottom-2 w-px bg-gray-800" />
+          <div className="space-y-4">
+            {progressEntries.map((entry, idx) => (
+              <div key={entry.id} className="relative flex gap-4">
+                {/* Dot */}
+                <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center z-10 ${idx === 0 ? 'bg-green-500' : 'bg-gray-800 border border-gray-700'}`}>
+                  {entry.photos?.length ? <Camera size={13} className={idx === 0 ? 'text-black' : 'text-gray-500'} /> : <Scale size={13} className={idx === 0 ? 'text-black' : 'text-gray-500'} />}
+                </div>
+
+                {/* Card */}
+                <div className="flex-1 bg-gray-900 border border-gray-800 rounded-2xl p-4 space-y-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="text-xs text-gray-500">{formatDate(entry.date)}</p>
+                      {entry.weight && (
+                        <p className="font-bold text-lg text-green-400 mt-0.5">{entry.weight} lbs</p>
+                      )}
+                    </div>
+                    <button onClick={() => deleteEntry(entry.id)} className="text-gray-700 hover:text-red-400 transition-colors">
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+
+                  {entry.note && <p className="text-gray-300 text-sm">{entry.note}</p>}
+
+                  {entry.source === 'channel' && (
+                    <span className="inline-block text-xs text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded-full">
+                      via #progress
+                    </span>
+                  )}
+
+                  {entry.photos?.length > 0 && (
+                    <div className="grid grid-cols-3 gap-2">
+                      {entry.photos.map((photo, i) => (
+                        <div key={i} className="aspect-square rounded-xl overflow-hidden relative group cursor-pointer" onClick={() => setLightbox(photo)}>
+                          <img src={photo.src} className="w-full h-full object-cover" alt="" />
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                            <ZoomIn size={16} className="text-white" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Lightbox */}
+      {lightbox && (
+        <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4" onClick={() => setLightbox(null)}>
+          <div className="relative max-w-lg w-full" onClick={e => e.stopPropagation()}>
+            <img src={lightbox.src} className="w-full rounded-2xl" alt="" />
+            <button onClick={() => setLightbox(null)} className="absolute top-3 right-3 bg-black/60 rounded-full p-2">
+              <X size={16} className="text-white" />
             </button>
           </div>
-
-          {/* Best PRs */}
-          {Object.keys(bestPRs).length > 0 && (
-            <div className="card">
-              <p className="font-semibold mb-3 flex items-center gap-2"><Trophy size={16} className="text-yellow-400" /> Best Lifts</p>
-              <div className="space-y-2">
-                {Object.values(bestPRs).map(pr => (
-                  <div key={pr.exercise} className="flex justify-between items-center py-2 border-b border-gray-800 last:border-0">
-                    <span className="text-sm font-medium">{pr.exercise}</span>
-                    <div className="text-right">
-                      <span className="font-bold text-green-400">{pr.weight} lbs</span>
-                      <span className="text-gray-500 text-xs ml-1">× {pr.reps}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* PR History */}
-          {prLog.length > 0 && (
-            <div className="card">
-              <p className="font-semibold mb-3">All PRs</p>
-              <div className="space-y-2 max-h-64 overflow-y-auto">
-                {sortByDateDesc(prLog).map(pr => (
-                  <div key={pr.id} className="flex justify-between items-center py-1 border-b border-gray-800 last:border-0">
-                    <div>
-                      <p className="text-sm font-medium">{pr.exercise}</p>
-                      <p className="text-xs text-gray-500">{formatDate(pr.date)}</p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="text-right">
-                        <span className="font-semibold">{pr.weight} lbs</span>
-                        <span className="text-gray-500 text-xs ml-1">× {pr.reps}</span>
-                      </div>
-                      <button
-                        onClick={() => setPrLog(prev => prev.filter(e => e.id !== pr.id))}
-                        className="text-gray-700 hover:text-red-400 transition-colors"
-                      >
-                        <Trash2 size={13} />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {!prLog.length && (
-            <div className="card flex flex-col items-center py-10 text-center">
-              <Trophy size={32} className="text-gray-700 mb-2" />
-              <p className="text-gray-500 text-sm">No PRs logged yet.</p>
-            </div>
-          )}
         </div>
       )}
     </div>
