@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { today } from '../utils/date'
@@ -136,7 +136,16 @@ function formatDayLabel(offset, date) {
 }
 
 export default function Workout() {
-  const [workoutPlan] = useLocalStorage('workoutPlan', DEFAULT_WORKOUT_PLAN)
+  const [workoutPlan, setWorkoutPlan] = useLocalStorage('workoutPlan', DEFAULT_WORKOUT_PLAN)
+
+  // Version check: if stored plan is missing image fields, reset to latest default
+  useEffect(() => {
+    const allExercises = Object.values(workoutPlan.workouts || {}).flatMap(w => w.exercises || [])
+    const hasImages = allExercises.some(e => e.image)
+    if (allExercises.length > 0 && !hasImages) {
+      setWorkoutPlan(DEFAULT_WORKOUT_PLAN)
+    }
+  }, [])
   const todayStr = today()
 
   // offset = days from today; 0 = today
