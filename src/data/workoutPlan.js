@@ -29,6 +29,7 @@ export const DEFAULT_WORKOUT_PLAN = {
       exercises: [
         {
           id: 'goblet-squat',
+          image: '/exercises/goblet-squat.jpg',
           name: 'Goblet Squat',
           category: 'quads',
           description: 'Hold a dumbbell or kettlebell at chest height. Feet shoulder-width apart, squat deep keeping chest tall. Great for quad and glute development with less lower back load.',
@@ -37,6 +38,7 @@ export const DEFAULT_WORKOUT_PLAN = {
         },
         {
           id: 'db-bench-press',
+          image: '/exercises/db-bench-press.jpg',
           name: 'Dumbbell Bench Press',
           category: 'chest',
           description: 'Lie on bench, dumbbells at chest level. Press up and slightly inward. Control the descent for 2–3 seconds. Primary chest and tricep builder.',
@@ -45,6 +47,7 @@ export const DEFAULT_WORKOUT_PLAN = {
         },
         {
           id: 'db-rdl',
+          image: '/exercises/rdl.jpg',
           name: 'Dumbbell Romanian Deadlift',
           category: 'hamstrings',
           description: 'Hip hinge movement. Push hips back, keep back flat, lower dumbbells along legs until you feel hamstring stretch. Drive hips forward to return.',
@@ -53,6 +56,7 @@ export const DEFAULT_WORKOUT_PLAN = {
         },
         {
           id: 'db-row',
+          image: '/exercises/db-row.jpg',
           name: 'Dumbbell Row',
           category: 'back',
           description: 'Brace on the bench with one knee. Pull dumbbell to hip, lead with elbow. Squeeze lat at top. Keep torso parallel to floor.',
@@ -61,6 +65,7 @@ export const DEFAULT_WORKOUT_PLAN = {
         },
         {
           id: 'db-lateral-raises',
+          image: '/exercises/lateral-raises.jpg',
           name: 'Lateral Raises',
           category: 'shoulders',
           description: 'Lead with elbows, not hands. Raise to shoulder height, control the negative over 3 seconds. Key for the wide shoulder look.',
@@ -69,6 +74,7 @@ export const DEFAULT_WORKOUT_PLAN = {
         },
         {
           id: 'plank',
+          image: '/exercises/plank.jpg',
           name: 'Plank Hold',
           category: 'core',
           description: 'Forearms on mat, body in straight line. Squeeze glutes and abs. Do not let hips sag. Build to 60 seconds.',
@@ -77,6 +83,7 @@ export const DEFAULT_WORKOUT_PLAN = {
         },
         {
           id: 'jump-rope-a',
+          image: '/exercises/jump-rope.jpg',
           name: 'Jump Rope Finisher',
           category: 'cardio',
           description: '10 minutes continuous. Alternate between steady pace and 30-second sprints. This is how Pitt trained for Fight Club. Keeps body fat low while preserving muscle.',
@@ -91,6 +98,7 @@ export const DEFAULT_WORKOUT_PLAN = {
       exercises: [
         {
           id: 'reverse-lunge',
+          image: '/exercises/reverse-lunge.jpg',
           name: 'Dumbbell Reverse Lunge',
           category: 'quads',
           description: 'Step back into a lunge, keep front knee over ankle. Alternate legs. More knee-friendly than forward lunge, great for quad and glute balance.',
@@ -108,6 +116,7 @@ export const DEFAULT_WORKOUT_PLAN = {
         },
         {
           id: 'kb-swing',
+          image: '/exercises/kb-swing.jpg',
           name: 'Kettlebell Swing',
           category: 'glutes',
           description: 'Explosive hip hinge. Drive hips forward to swing KB to shoulder height — not a squat, not a pull. Posterior chain power and conditioning in one movement.',
@@ -116,6 +125,7 @@ export const DEFAULT_WORKOUT_PLAN = {
         },
         {
           id: 'db-overhead-press',
+          image: '/exercises/overhead-press.jpg',
           name: 'Dumbbell Overhead Press',
           category: 'shoulders',
           description: 'Seated or standing. Press dumbbells from shoulder height overhead. Brace core throughout. Builds boulder shoulders.',
@@ -124,6 +134,7 @@ export const DEFAULT_WORKOUT_PLAN = {
         },
         {
           id: 'band-face-pulls',
+          image: '/exercises/face-pulls.jpg',
           name: 'Band Face Pulls',
           category: 'shoulders',
           description: 'Anchor band at head height. Pull toward face with hands wide apart. Rear delt and rotator cuff health — prevents shoulder injuries and improves posture.',
@@ -132,6 +143,7 @@ export const DEFAULT_WORKOUT_PLAN = {
         },
         {
           id: 'db-curl',
+          image: '/exercises/db-curl.jpg',
           name: 'Dumbbell Bicep Curl',
           category: 'biceps',
           description: 'Alternate arms, keep elbows pinned at sides. Full range of motion. Control the negative. No swinging.',
@@ -140,6 +152,7 @@ export const DEFAULT_WORKOUT_PLAN = {
         },
         {
           id: 'db-tricep-ext',
+          image: '/exercises/db-tricep-ext.jpg',
           name: 'Overhead Tricep Extension',
           category: 'triceps',
           description: 'Hold one dumbbell overhead with both hands. Lower behind head, press back up. Stretches the long head of tricep for maximum growth.',
@@ -148,6 +161,7 @@ export const DEFAULT_WORKOUT_PLAN = {
         },
         {
           id: 'jump-rope-b',
+          image: '/exercises/jump-rope.jpg',
           name: 'Jump Rope Finisher',
           category: 'cardio',
           description: '10 minutes continuous. Alternate steady pace and 30-second sprints. Non-negotiable — this is what keeps the physique lean while building.',
