@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
+import { useRemoteData } from '../hooks/useRemoteData'
 import { today, formatDate } from '../utils/date'
 import { Plus, Trash2, Camera, Scale, TrendingUp, ZoomIn, X } from 'lucide-react'
 import {
@@ -19,7 +20,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 }
 
 export default function Progress() {
-  const [progressEntries, setProgressEntries] = useLocalStorage('progressEntries', [])
+  const [progressEntries, setProgressEntries] = useRemoteData('progress-entries.json', [])
   const [lightbox, setLightbox] = useState(null)
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState({ date: today(), weight: '', note: '', photos: [] })
