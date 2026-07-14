@@ -2,11 +2,19 @@
 
 ## Profile
 - **Name:** Nicolas Turbay
+- **Sex:** Male
+- **Age:** 42
+- **Height:** 5'11" (180 cm)
+- **Weight:** 164 lbs (74.4 kg)
 - **Timezone:** America/New_York
-- **Status:** Setting up — personal data not yet provided
+- **Status:** Profile started — goal, training history, and equipment pending
+
+## Biometrics
+- **BMI:** 22.9 (healthy range)
+- **Last weigh-in:** 2026-07-14
 
 ## Current Goal
-Not yet defined. Awaiting Nicolas's personal data (age, weight, goal, training history).
+Not yet defined. Awaiting: primary goal, training experience, days per week, gym equipment, injuries.
 
 ## Active Workout Plan
 - **Plan:** Push / Pull / Legs (sample — not yet personalized)
@@ -23,8 +31,8 @@ Not yet defined. Awaiting Nicolas's personal data (age, weight, goal, training h
 Not yet provided.
 
 ## Current Metrics
-- **Weight:** Not logged
-- **Last weigh-in:** Never
+- **Weight:** 164 lbs
+- **Last weigh-in:** 2026-07-14
 - **Streak:** 0 days
 
 ## This Week
@@ -43,4 +51,4 @@ Not yet provided.
 - Context isolation: fitness data never crosses into KINCE or other projects
 
 ## Last Updated
-Not yet updated. Will be maintained automatically after each session.
+2026-07-14
