@@ -1,13 +1,22 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { today, formatDate } from '../utils/date'
-import { Plus, Trash2, Target, Flame, ChevronDown, ChevronUp } from 'lucide-react'
+import { Plus, Trash2, Target, Flame, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Calendar } from 'lucide-react'
 
 const MACRO_COLORS = {
   calories: { bar: 'bg-orange-400', text: 'text-orange-400' },
   protein:  { bar: 'bg-yellow-400', text: 'text-yellow-400' },
   carbs:    { bar: 'bg-blue-400',   text: 'text-blue-400'   },
   fat:      { bar: 'bg-purple-400', text: 'text-purple-400' },
+}
+
+function formatTime(meal) {
+  // Try logged_at first, then derive from id (which is Date.now())
+  const ts = meal.logged_at || (meal.id && meal.id > 1000000000000 ? new Date(meal.id) : null)
+  if (!ts) return null
+  const d = new Date(ts)
+  if (isNaN(d)) return null
+  return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
 }
 
 function MacroBar({ label, value, goal, macro }) {
@@ -28,10 +37,14 @@ function MacroBar({ label, value, goal, macro }) {
 }
 
 function MealCard({ meal, onDelete }) {
+  const time = formatTime(meal)
   return (
     <div className="card flex justify-between items-start gap-3">
       <div className="flex-1 min-w-0">
-        <p className="font-medium text-sm truncate">{meal.name}</p>
+        <div className="flex items-center gap-2">
+          <p className="font-medium text-sm truncate">{meal.name}</p>
+          {time && <span className="text-xs text-gray-600 flex-shrink-0">{time}</span>}
+        </div>
         {meal.note && <p className="text-xs text-gray-500 mt-0.5">{meal.note}</p>}
         {meal.source === 'nutrition-channel' && (
           <span className="text-xs text-blue-400">via #nutrition</span>
@@ -50,26 +63,39 @@ function MealCard({ meal, onDelete }) {
   )
 }
 
+function offsetDate(dateStr, days) {
+  const d = new Date(dateStr + 'T12:00:00')
+  d.setDate(d.getDate() + days)
+  return d.toISOString().split('T')[0]
+}
+
+function friendlyDate(dateStr) {
+  const todayStr = today()
+  if (dateStr === todayStr) return 'Today'
+  if (dateStr === offsetDate(todayStr, -1)) return 'Yesterday'
+  if (dateStr === offsetDate(todayStr, 1)) return 'Tomorrow'
+  const d = new Date(dateStr + 'T12:00:00')
+  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+}
+
 export default function Nutrition() {
   const [meals, setMeals] = useState([])
   const [goals, setGoals] = useState({ calories: 2500, protein: 180, carbs: 280, fat: 80 })
   const [loading, setLoading] = useState(true)
   const [view, setView] = useState('daily')
+  const [selectedDate, setSelectedDate] = useState(today())
   const [showGoalEditor, setShowGoalEditor] = useState(false)
   const [goalDraft, setGoalDraft] = useState(goals)
-  const [form, setForm] = useState({ name: '', calories: '', protein: '', carbs: '', fat: '', note: '', date: today() })
+  const [form, setForm] = useState({ name: '', calories: '', protein: '', carbs: '', fat: '', note: '', date: today(), time: new Date().toTimeString().slice(0,5) })
 
   const todayStr = today()
 
-  // Fetch meals + goals and subscribe to real-time changes
   useEffect(() => {
     fetchData()
-
     const channel = supabase
       .channel('nutrition-realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'meal_logs' }, () => fetchData())
       .subscribe()
-
     return () => supabase.removeChannel(channel)
   }, [])
 
@@ -79,18 +105,15 @@ export default function Nutrition() {
       supabase.from('nutrition_goals').select('*').eq('id', 1).single(),
     ])
     if (mealsRes.data) setMeals(mealsRes.data)
-    if (goalsRes.data) {
-      setGoals(goalsRes.data)
-      setGoalDraft(goalsRes.data)
-    }
+    if (goalsRes.data) { setGoals(goalsRes.data); setGoalDraft(goalsRes.data) }
     setLoading(false)
   }
 
-  // Filter by view
+  // Filter meals
   const now = new Date()
   const filtered = meals.filter(m => {
     const d = new Date(m.date)
-    if (view === 'daily') return m.date === todayStr
+    if (view === 'daily') return m.date === selectedDate
     if (view === 'weekly') { const w = new Date(now); w.setDate(now.getDate() - 7); return d >= w }
     if (view === 'monthly') { const mo = new Date(now); mo.setDate(now.getDate() - 30); return d >= mo }
     return true
@@ -98,31 +121,40 @@ export default function Nutrition() {
 
   const totals = filtered.reduce((a, m) => ({
     calories: a.calories + (Number(m.calories) || 0),
-    protein: a.protein + (Number(m.protein) || 0),
-    carbs: a.carbs + (Number(m.carbs) || 0),
-    fat: a.fat + (Number(m.fat) || 0),
+    protein:  a.protein  + (Number(m.protein)  || 0),
+    carbs:    a.carbs    + (Number(m.carbs)    || 0),
+    fat:      a.fat      + (Number(m.fat)      || 0),
   }), { calories: 0, protein: 0, carbs: 0, fat: 0 })
 
   const mult = view === 'weekly' ? 7 : view === 'monthly' ? 30 : 1
-  const scaledGoals = { calories: goals.calories * mult, protein: goals.protein * mult, carbs: goals.carbs * mult, fat: goals.fat * mult }
+  const scaledGoals = {
+    calories: goals.calories * mult, protein: goals.protein * mult,
+    carbs: goals.carbs * mult,       fat: goals.fat * mult,
+  }
 
   const addMeal = async () => {
     if (!form.name) return
+    // Build logged_at from date + time
+    const loggedAt = form.time
+      ? new Date(`${form.date}T${form.time}:00`).toISOString()
+      : new Date(`${form.date}T12:00:00`).toISOString()
+
     const entry = {
       id: Date.now(),
       date: form.date,
+      logged_at: loggedAt,
       name: form.name,
       note: form.note || null,
       calories: Number(form.calories) || 0,
-      protein: Number(form.protein) || 0,
-      carbs: Number(form.carbs) || 0,
-      fat: Number(form.fat) || 0,
+      protein:  Number(form.protein)  || 0,
+      carbs:    Number(form.carbs)    || 0,
+      fat:      Number(form.fat)      || 0,
       source: 'manual',
     }
     const { error } = await supabase.from('meal_logs').insert(entry)
     if (!error) {
       setMeals(prev => [entry, ...prev])
-      setForm({ name: '', calories: '', protein: '', carbs: '', fat: '', note: '', date: today() })
+      setForm({ name: '', calories: '', protein: '', carbs: '', fat: '', note: '', date: today(), time: new Date().toTimeString().slice(0,5) })
     }
   }
 
@@ -137,7 +169,6 @@ export default function Nutrition() {
     setShowGoalEditor(false)
   }
 
-  // Group by date for weekly/monthly view
   const byDate = filtered.reduce((acc, m) => { if (!acc[m.date]) acc[m.date] = []; acc[m.date].push(m); return acc }, {})
   const sortedDates = Object.keys(byDate).sort((a, b) => new Date(b) - new Date(a))
 
@@ -145,6 +176,7 @@ export default function Nutrition() {
 
   return (
     <div className="space-y-5">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Nutrition</h1>
         <button onClick={() => setShowGoalEditor(e => !e)} className="text-xs text-gray-500 hover:text-white flex items-center gap-1">
@@ -172,20 +204,67 @@ export default function Nutrition() {
         <p className="text-gray-400 text-xs">Post meals in <span className="text-blue-400">#nutrition</span> and they appear here in real time.</p>
       </div>
 
+      {/* View tabs */}
       <div className="flex bg-gray-900 rounded-xl p-1 gap-1">
-        {[['daily','Today'],['weekly','Week'],['monthly','Month']].map(([key, label]) => (
+        {[['daily','Day'],['weekly','Week'],['monthly','Month']].map(([key, label]) => (
           <button key={key} onClick={() => setView(key)} className={`flex-1 py-1.5 rounded-lg text-sm font-medium transition-colors ${view === key ? 'bg-green-500 text-black' : 'text-gray-400 hover:text-white'}`}>{label}</button>
         ))}
       </div>
 
+      {/* Date navigation — only in daily view */}
+      {view === 'daily' && (
+        <div className="flex items-center justify-between gap-2">
+          <button
+            onClick={() => setSelectedDate(d => offsetDate(d, -1))}
+            className="w-9 h-9 rounded-xl bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+          >
+            <ChevronLeft size={18} />
+          </button>
+
+          <div className="flex-1 relative">
+            <div className="flex items-center justify-center gap-2">
+              <span className={`text-sm font-semibold ${selectedDate === todayStr ? 'text-green-400' : 'text-white'}`}>
+                {friendlyDate(selectedDate)}
+              </span>
+              <Calendar size={13} className="text-gray-600" />
+            </div>
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={e => setSelectedDate(e.target.value)}
+              className="absolute inset-0 opacity-0 cursor-pointer w-full"
+            />
+          </div>
+
+          <button
+            onClick={() => setSelectedDate(d => offsetDate(d, 1))}
+            className="w-9 h-9 rounded-xl bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+          >
+            <ChevronRight size={18} />
+          </button>
+
+          {selectedDate !== todayStr && (
+            <button
+              onClick={() => setSelectedDate(todayStr)}
+              className="px-3 h-9 rounded-xl bg-gray-800 hover:bg-gray-700 text-xs text-gray-400 hover:text-white transition-colors"
+            >
+              Today
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Macro KPIs */}
       <div className="card space-y-3">
-        <p className="font-semibold text-sm">{view === 'daily' ? 'Today' : view === 'weekly' ? 'This Week' : 'This Month'}</p>
+        <p className="font-semibold text-sm">
+          {view === 'daily' ? friendlyDate(selectedDate) : view === 'weekly' ? 'This Week' : 'This Month'}
+        </p>
         <MacroBar macro="calories" label="Calories (kcal)" value={totals.calories} goal={scaledGoals.calories} />
-        <MacroBar macro="protein"  label="Protein (g)"    value={totals.protein}  goal={scaledGoals.protein}  />
-        <MacroBar macro="carbs"    label="Carbs (g)"      value={totals.carbs}    goal={scaledGoals.carbs}    />
-        <MacroBar macro="fat"      label="Fat (g)"        value={totals.fat}      goal={scaledGoals.fat}      />
+        <MacroBar macro="protein"  label="Protein (g)"     value={totals.protein}  goal={scaledGoals.protein}  />
+        <MacroBar macro="carbs"    label="Carbs (g)"       value={totals.carbs}    goal={scaledGoals.carbs}    />
+        <MacroBar macro="fat"      label="Fat (g)"         value={totals.fat}      goal={scaledGoals.fat}      />
         <div className="grid grid-cols-4 gap-2 pt-1 border-t border-gray-800">
-          {[['kcal', totals.calories,'text-orange-400'],['g protein',totals.protein,'text-yellow-400'],['g carbs',totals.carbs,'text-blue-400'],['g fat',totals.fat,'text-purple-400']].map(([unit,val,cls]) => (
+          {[['kcal',totals.calories,'text-orange-400'],['g pro',totals.protein,'text-yellow-400'],['g carbs',totals.carbs,'text-blue-400'],['g fat',totals.fat,'text-purple-400']].map(([unit,val,cls]) => (
             <div key={unit} className="text-center">
               <p className={`text-lg font-bold ${cls}`}>{Math.round(val)}</p>
               <p className="text-xs text-gray-600">{unit}</p>
@@ -194,6 +273,7 @@ export default function Nutrition() {
         </div>
       </div>
 
+      {/* Log form */}
       <div className="card space-y-3">
         <p className="font-semibold text-sm">Log a Meal</p>
         <div className="grid grid-cols-2 gap-2">
@@ -201,20 +281,33 @@ export default function Nutrition() {
             <label className="label">Meal Name</label>
             <input className="input" placeholder="e.g. Chicken & rice bowl" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
           </div>
-          <div><label className="label">Date</label><input className="input" type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} /></div>
+          <div>
+            <label className="label">Date</label>
+            <input className="input" type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
+          </div>
+          <div>
+            <label className="label">Time</label>
+            <input className="input" type="time" value={form.time} onChange={e => setForm(f => ({ ...f, time: e.target.value }))} />
+          </div>
           <div><label className="label">Calories</label><input className="input" type="number" placeholder="500" value={form.calories} onChange={e => setForm(f => ({ ...f, calories: e.target.value }))} /></div>
           <div><label className="label">Protein (g)</label><input className="input" type="number" placeholder="40" value={form.protein} onChange={e => setForm(f => ({ ...f, protein: e.target.value }))} /></div>
           <div><label className="label">Carbs (g)</label><input className="input" type="number" placeholder="60" value={form.carbs} onChange={e => setForm(f => ({ ...f, carbs: e.target.value }))} /></div>
           <div><label className="label">Fat (g)</label><input className="input" type="number" placeholder="15" value={form.fat} onChange={e => setForm(f => ({ ...f, fat: e.target.value }))} /></div>
-          <div className="col-span-2"><label className="label">Note</label><input className="input" placeholder="e.g. post-workout" value={form.note} onChange={e => setForm(f => ({ ...f, note: e.target.value }))} /></div>
+          <div className="col-span-2">
+            <label className="label">Note</label>
+            <input className="input" placeholder="e.g. post-workout" value={form.note} onChange={e => setForm(f => ({ ...f, note: e.target.value }))} />
+          </div>
         </div>
         <button onClick={addMeal} className="btn-primary w-full flex items-center justify-center gap-2"><Plus size={16} /> Log Meal</button>
       </div>
 
+      {/* Meal list */}
       {filtered.length === 0 ? (
         <div className="card flex flex-col items-center py-10 text-center">
           <Flame size={32} className="text-gray-700 mb-2" />
-          <p className="text-gray-500 text-sm">No meals logged {view === 'daily' ? 'today' : `this ${view === 'weekly' ? 'week' : 'month'}`}.</p>
+          <p className="text-gray-500 text-sm">
+            No meals logged {view === 'daily' ? `for ${friendlyDate(selectedDate).toLowerCase()}` : `this ${view === 'weekly' ? 'week' : 'month'}`}.
+          </p>
         </div>
       ) : view === 'daily' ? (
         <div className="space-y-2">{filtered.map(m => <MealCard key={m.id} meal={m} onDelete={deleteMeal} />)}</div>
