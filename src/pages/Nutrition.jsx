@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
+import { useRemoteData } from '../hooks/useRemoteData'
 import { today, formatDate } from '../utils/date'
-import { Plus, Trash2, Target, Flame, ChevronDown, ChevronUp } from 'lucide-react'
+import { Plus, Trash2, Target, Flame, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react'
 
 const MACRO_COLORS = {
   calories: { bar: 'bg-orange-400', text: 'text-orange-400' },
@@ -31,7 +32,7 @@ function MacroBar({ label, value, goal, ...macroKey }) {
 
 export default function Nutrition() {
   const [goals, setGoals] = useLocalStorage('nutritionGoals', { calories: 2500, protein: 180, carbs: 280, fat: 80 })
-  const [mealLogs, setMealLogs] = useLocalStorage('mealLogs', [])
+  const [mealLogs, setMealLogs, loadingMeals] = useRemoteData('meal-logs.json', [])
   const [view, setView] = useState('daily')
   const [showGoalEditor, setShowGoalEditor] = useState(false)
   const [goalDraft, setGoalDraft] = useState(goals)
