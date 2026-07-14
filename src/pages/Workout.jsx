@@ -1,9 +1,9 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { supabase } from '../lib/supabase'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { today } from '../utils/date'
 import { DEFAULT_WORKOUT_PLAN, CATEGORY_META } from '../data/workoutPlan'
-import { CheckCircle2, Plus, Minus, Dumbbell } from 'lucide-react'
+import { CheckCircle2, Plus, Minus, Dumbbell, ChevronLeft, ChevronRight } from 'lucide-react'
 
 // ExerciseCard — input only, no log button
 function ExerciseCard({ exercise, onChange, completed }) {
@@ -111,30 +111,59 @@ function ExerciseCard({ exercise, onChange, completed }) {
   )
 }
 
+const DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
+const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+
+function dateFromOffset(offset) {
+  const d = new Date()
+  d.setDate(d.getDate() + offset)
+  return d
+}
+
+function formatDayLabel(offset, date) {
+  if (offset === 0) return 'Today'
+  if (offset === 1) return 'Tomorrow'
+  if (offset === -1) return 'Yesterday'
+  return `${DAY_NAMES[date.getDay()]}, ${MONTH_NAMES[date.getMonth()]} ${date.getDate()}`
+}
+
 export default function Workout() {
   const [workoutPlan] = useLocalStorage('workoutPlan', DEFAULT_WORKOUT_PLAN)
   const todayStr = today()
-  const dayOfWeek = new Date().getDay()
-  const todayKey = workoutPlan.schedule?.[dayOfWeek]
 
-  let displayKey = todayKey
-  let displayLabel = 'Today'
-  let daysAhead = 0
-
-  if (!todayKey) {
+  // offset = days from today; 0 = today
+  const [offset, setOffset] = useState(() => {
+    // start on today if it has a workout, otherwise find next planned day
+    const dow = new Date().getDay()
+    if (workoutPlan.schedule?.[dow]) return 0
     for (let i = 1; i <= 7; i++) {
-      const nextDow = (dayOfWeek + i) % 7
-      if (workoutPlan.schedule?.[nextDow]) {
-        displayKey = workoutPlan.schedule[nextDow]
-        daysAhead = i
-        const names = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
-        displayLabel = i === 1 ? 'Tomorrow' : names[nextDow]
-        break
-      }
+      if (workoutPlan.schedule?.[(dow + i) % 7]) return i
     }
-  }
+    return 0
+  })
 
-  const workout = displayKey ? workoutPlan.workouts?.[displayKey] : null
+  const selectedDate = useMemo(() => dateFromOffset(offset), [offset])
+  const selectedDow = selectedDate.getDay()
+  const selectedDateStr = selectedDate.toISOString().split('T')[0]
+  const workoutKey = workoutPlan.schedule?.[selectedDow] ?? null
+  const workout = workoutKey ? workoutPlan.workouts?.[workoutKey] : null
+  const dayLabel = formatDayLabel(offset, selectedDate)
+  const isToday = offset === 0
+  const isFuture = offset > 0
+
+  // Navigate to prev/next planned workout day
+  const navigate = (dir) => {
+    setOffset(prev => {
+      for (let i = 1; i <= 14; i++) {
+        const next = prev + dir * i
+        const dow = dateFromOffset(next).getDay()
+        if (workoutPlan.schedule?.[dow]) return next
+      }
+      return prev
+    })
+    setExerciseData({})
+    setSessionComplete(false)
+  }
 
   // All exercise data lives here, updated on every keystroke
   const [exerciseData, setExerciseData] = useState({})
@@ -157,8 +186,8 @@ export default function Workout() {
     setSaving(true)
     const entry = {
       id: Date.now(),
-      date: todayStr,
-      workout_key: displayKey,
+      date: selectedDateStr,
+      workout_key: workoutKey,
       workout_name: workout.name,
       exercises: Object.fromEntries(withData.map(([id, e]) => [id, e.sets])),
       completed_at: new Date().toISOString(),
@@ -168,7 +197,8 @@ export default function Workout() {
     setSessionComplete(true)
   }
 
-  if (!workout) {
+  if (!workoutKey && !workout) {
+    // No plan at all
     return (
       <div className="space-y-4">
         <h1 className="text-2xl font-bold">Workout</h1>
@@ -198,14 +228,45 @@ export default function Workout() {
 
   return (
     <div className="space-y-5">
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${daysAhead === 0 ? 'bg-green-500/20 text-green-400' : 'bg-gray-800 text-gray-400'}`}>
-          {displayLabel}
-        </span>
-        <div>
-          <h1 className="text-2xl font-bold leading-tight">{workout.name}</h1>
-          <p className="text-gray-500 text-sm">{workout.focus}</p>
+      {/* Header with date navigation */}
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <span className={`text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0 ${
+            isToday ? 'bg-green-500/20 text-green-400' : isFuture ? 'bg-blue-500/20 text-blue-400' : 'bg-gray-800 text-gray-400'
+          }`}>
+            {dayLabel}
+          </span>
+          <div>
+            <h1 className="text-2xl font-bold leading-tight">{workout.name}</h1>
+            <p className="text-gray-500 text-sm">
+              {selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })} · {workout.focus}
+            </p>
+          </div>
+        </div>
+        {/* Prev / Next navigation */}
+        <div className="flex items-center gap-1 flex-shrink-0">
+          <button
+            onClick={() => navigate(-1)}
+            className="w-9 h-9 rounded-xl bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+            title="Previous workout"
+          >
+            <ChevronLeft size={18} />
+          </button>
+          {!isToday && (
+            <button
+              onClick={() => { setOffset(0); setExerciseData({}); setSessionComplete(false) }}
+              className="px-3 h-9 rounded-xl bg-gray-800 hover:bg-gray-700 text-xs text-gray-400 hover:text-white transition-colors"
+            >
+              Today
+            </button>
+          )}
+          <button
+            onClick={() => navigate(1)}
+            className="w-9 h-9 rounded-xl bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+            title="Next workout"
+          >
+            <ChevronRight size={18} />
+          </button>
         </div>
       </div>
 
@@ -219,7 +280,7 @@ export default function Workout() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {workout.exercises.map(exercise => (
           <ExerciseCard
-            key={exercise.id}
+            key={`${selectedDateStr}-${exercise.id}`}
             exercise={exercise}
             onChange={handleExerciseChange}
             completed={exerciseData[exercise.id]?.sets?.every(s => s.reps)}
