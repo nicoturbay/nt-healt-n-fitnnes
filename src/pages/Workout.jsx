@@ -1,28 +1,43 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { today } from '../utils/date'
 import { DEFAULT_WORKOUT_PLAN, CATEGORY_META } from '../data/workoutPlan'
 import { CheckCircle2, Plus, Minus, Dumbbell } from 'lucide-react'
 
-function ExerciseCard({ exercise, onLog }) {
+// ExerciseCard — input only, no log button
+function ExerciseCard({ exercise, onChange, completed }) {
   const meta = CATEGORY_META[exercise.category] || CATEGORY_META.chest
-  const [sets, setSets] = useState(Array.from({ length: exercise.targetSets }, () => ({ reps: '', weight: '' })))
-  const [logged, setLogged] = useState(false)
+  const [sets, setSets] = useState(
+    Array.from({ length: exercise.targetSets }, () => ({ reps: '', weight: '' }))
+  )
 
-  const updateSet = (i, field, val) => setSets(prev => prev.map((s, idx) => idx === i ? { ...s, [field]: val } : s))
-  const addSet = () => setSets(prev => [...prev, { reps: '', weight: '' }])
-  const removeSet = () => setSets(prev => prev.length > 1 ? prev.slice(0, -1) : prev)
-
-  const handleLog = () => {
-    const filled = sets.filter(s => s.reps)
-    if (!filled.length) return
-    onLog(exercise.id, exercise.name, filled)
-    setLogged(true)
+  const updateSet = (i, field, val) => {
+    const next = sets.map((s, idx) => idx === i ? { ...s, [field]: val } : s)
+    setSets(next)
+    onChange(exercise.id, exercise.name, next)
   }
 
+  const addSet = () => {
+    const next = [...sets, { reps: '', weight: '' }]
+    setSets(next)
+    onChange(exercise.id, exercise.name, next)
+  }
+
+  const removeSet = () => {
+    if (sets.length <= 1) return
+    const next = sets.slice(0, -1)
+    setSets(next)
+    onChange(exercise.id, exercise.name, next)
+  }
+
+  const filledSets = sets.filter(s => s.reps).length
+
   return (
-    <div className={`flex flex-col rounded-2xl overflow-hidden border transition-all h-full ${logged ? 'border-green-500/50 bg-green-500/5' : 'border-gray-800 bg-gray-900'}`}>
+    <div className={`flex flex-col rounded-2xl overflow-hidden border transition-all h-full ${
+      completed ? 'border-green-500/50 bg-green-500/5' : 'border-gray-800 bg-gray-900'
+    }`}>
+      {/* Header */}
       <div className={`px-4 py-3 ${meta.light} flex items-center gap-2.5`}>
         <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs flex-shrink-0 ${meta.color} text-black`}>
           {exercise.category.charAt(0).toUpperCase()}
@@ -31,7 +46,7 @@ function ExerciseCard({ exercise, onLog }) {
           <p className="font-semibold text-sm leading-tight truncate">{exercise.name}</p>
           <p className={`text-xs mt-0.5 ${meta.text}`}>{meta.label}</p>
         </div>
-        {logged && <CheckCircle2 size={16} className="text-green-400 flex-shrink-0" />}
+        {completed && <CheckCircle2 size={16} className="text-green-400 flex-shrink-0" />}
       </div>
 
       <p className="text-gray-500 text-xs px-4 pt-3 leading-relaxed">{exercise.description}</p>
@@ -43,15 +58,20 @@ function ExerciseCard({ exercise, onLog }) {
         </div>
       </div>
 
+      {/* Sets */}
       <div className="px-4 pt-3 pb-4 flex-1 flex flex-col">
         <div className="flex items-center justify-between mb-2">
           <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${meta.light} ${meta.text}`}>
             {exercise.targetSets} × {exercise.targetReps}
           </span>
           <div className="flex items-center gap-2">
-            <button onClick={removeSet} className="w-5 h-5 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"><Minus size={11} /></button>
+            <button onClick={removeSet} className="w-5 h-5 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-700 transition-colors">
+              <Minus size={11} />
+            </button>
             <span className="text-xs text-gray-500 w-10 text-center">{sets.length} sets</span>
-            <button onClick={addSet} className="w-5 h-5 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"><Plus size={11} /></button>
+            <button onClick={addSet} className="w-5 h-5 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-700 transition-colors">
+              <Plus size={11} />
+            </button>
           </div>
         </div>
 
@@ -65,15 +85,26 @@ function ExerciseCard({ exercise, onLog }) {
           {sets.map((set, i) => (
             <div key={i} className="grid grid-cols-12 gap-1 items-center">
               <div className="col-span-1 text-[10px] text-gray-700 text-center font-medium">{i + 1}</div>
-              <input className="col-span-6 bg-gray-800 border border-gray-700 rounded-lg text-center text-xs py-1.5 text-white placeholder-gray-600 focus:outline-none focus:border-gray-500" type="number" placeholder="0" value={set.weight} onChange={e => updateSet(i, 'weight', e.target.value)} />
-              <input className="col-span-5 bg-gray-800 border border-gray-700 rounded-lg text-center text-xs py-1.5 text-white placeholder-gray-600 focus:outline-none focus:border-gray-500" type="number" placeholder={exercise.targetReps.toString().split('–')[0]} value={set.reps} onChange={e => updateSet(i, 'reps', e.target.value)} />
+              <input
+                className="col-span-6 bg-gray-800 border border-gray-700 rounded-lg text-center text-xs py-1.5 text-white placeholder-gray-600 focus:outline-none focus:border-gray-500"
+                type="number" placeholder="0" value={set.weight}
+                onChange={e => updateSet(i, 'weight', e.target.value)}
+              />
+              <input
+                className="col-span-5 bg-gray-800 border border-gray-700 rounded-lg text-center text-xs py-1.5 text-white placeholder-gray-600 focus:outline-none focus:border-gray-500"
+                type="number" placeholder={exercise.targetReps.toString().split('–')[0]} value={set.reps}
+                onChange={e => updateSet(i, 'reps', e.target.value)}
+              />
             </div>
           ))}
         </div>
 
-        <button onClick={handleLog} disabled={logged} className={`mt-3 w-full py-2 rounded-xl text-xs font-bold transition-all ${logged ? 'bg-green-500/20 text-green-400 cursor-default' : 'bg-green-500 text-black hover:bg-green-400 active:scale-[0.98]'}`}>
-          {logged ? '✓ Logged' : 'Log Exercise'}
-        </button>
+        {/* Progress indicator — no button */}
+        {filledSets > 0 && (
+          <p className={`mt-3 text-xs text-center ${filledSets === sets.length ? 'text-green-400' : 'text-gray-500'}`}>
+            {filledSets}/{sets.length} sets filled
+          </p>
+        )}
       </div>
     </div>
   )
@@ -103,32 +134,38 @@ export default function Workout() {
   }
 
   const workout = displayKey ? workoutPlan.workouts?.[displayKey] : null
-  const [exerciseLogs, setExerciseLogs] = useState({})
+
+  // All exercise data lives here, updated on every keystroke
+  const [exerciseData, setExerciseData] = useState({})
   const [saving, setSaving] = useState(false)
   const [sessionComplete, setSessionComplete] = useState(false)
 
-  const logExercise = (exerciseId, exerciseName, sets) =>
-    setExerciseLogs(prev => ({ ...prev, [exerciseId]: sets }))
+  const handleExerciseChange = useCallback((id, name, sets) => {
+    setExerciseData(prev => ({ ...prev, [id]: { name, sets } }))
+  }, [])
 
-  const finishWorkout = async () => {
-    if (!Object.keys(exerciseLogs).length) return
+  // Count exercises with at least one rep filled
+  const filledCount = Object.values(exerciseData).filter(
+    e => e.sets.some(s => s.reps)
+  ).length
+  const totalExercises = workout?.exercises?.length || 0
+
+  const logWorkout = async () => {
+    const withData = Object.entries(exerciseData).filter(([, e]) => e.sets.some(s => s.reps))
+    if (!withData.length) return
     setSaving(true)
     const entry = {
       id: Date.now(),
       date: todayStr,
       workout_key: displayKey,
       workout_name: workout.name,
-      exercises: exerciseLogs,
+      exercises: Object.fromEntries(withData.map(([id, e]) => [id, e.sets])),
       completed_at: new Date().toISOString(),
     }
     await supabase.from('workout_logs').insert(entry)
     setSaving(false)
     setSessionComplete(true)
-    setExerciseLogs({})
   }
-
-  const loggedCount = Object.keys(exerciseLogs).length
-  const totalExercises = workout?.exercises?.length || 0
 
   if (!workout) {
     return (
@@ -143,30 +180,31 @@ export default function Workout() {
     )
   }
 
+  if (sessionComplete) {
+    return (
+      <div className="space-y-4">
+        <h1 className="text-2xl font-bold">Workout</h1>
+        <div className="card flex flex-col items-center py-16 text-center">
+          <CheckCircle2 size={48} className="text-green-400 mb-4" />
+          <p className="font-bold text-xl">Workout logged</p>
+          <p className="text-gray-500 text-sm mt-2">
+            {filledCount} of {totalExercises} exercises saved.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-3">
-          <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${daysAhead === 0 ? 'bg-green-500/20 text-green-400' : 'bg-gray-800 text-gray-400'}`}>{displayLabel}</span>
-          <div>
-            <h1 className="text-2xl font-bold leading-tight">{workout.name}</h1>
-            <p className="text-gray-500 text-sm">{workout.focus}</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          {loggedCount > 0 && !sessionComplete && (
-            <span className="text-xs text-gray-400 bg-gray-800 px-3 py-1.5 rounded-full">{loggedCount}/{totalExercises} logged</span>
-          )}
-          {sessionComplete && (
-            <span className="flex items-center gap-1.5 bg-green-500/20 text-green-400 px-3 py-1.5 rounded-full text-sm font-medium">
-              <CheckCircle2 size={14} /> Saved
-            </span>
-          )}
-          {!sessionComplete && loggedCount > 0 && (
-            <button onClick={finishWorkout} disabled={saving} className="bg-green-500 text-black font-bold text-sm px-4 py-2 rounded-xl hover:bg-green-400 transition-colors disabled:opacity-60">
-              {saving ? 'Saving...' : 'Finish Workout'}
-            </button>
-          )}
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${daysAhead === 0 ? 'bg-green-500/20 text-green-400' : 'bg-gray-800 text-gray-400'}`}>
+          {displayLabel}
+        </span>
+        <div>
+          <h1 className="text-2xl font-bold leading-tight">{workout.name}</h1>
+          <p className="text-gray-500 text-sm">{workout.focus}</p>
         </div>
       </div>
 
@@ -176,25 +214,35 @@ export default function Workout() {
         </div>
       )}
 
+      {/* Exercise cards — input only */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {workout.exercises.map(exercise => (
-          <ExerciseCard key={exercise.id} exercise={exercise} onLog={logExercise} />
+          <ExerciseCard
+            key={exercise.id}
+            exercise={exercise}
+            onChange={handleExerciseChange}
+            completed={exerciseData[exercise.id]?.sets?.every(s => s.reps)}
+          />
         ))}
       </div>
 
-      {!sessionComplete && loggedCount > 0 && (
-        <button onClick={finishWorkout} disabled={saving} className="w-full py-3 rounded-2xl bg-green-500 text-black font-bold hover:bg-green-400 transition-colors disabled:opacity-60">
-          {saving ? 'Saving...' : `Finish Workout (${loggedCount}/${totalExercises} exercises logged)`}
-        </button>
-      )}
-
-      {sessionComplete && (
-        <div className="card text-center py-6">
-          <p className="text-2xl mb-1">🎉</p>
-          <p className="font-semibold">Workout saved to Supabase!</p>
-          <p className="text-gray-500 text-sm mt-1">Visible everywhere, instantly.</p>
-        </div>
-      )}
+      {/* Single log button */}
+      <button
+        onClick={logWorkout}
+        disabled={saving || filledCount === 0}
+        className={`w-full py-4 rounded-2xl font-bold text-base transition-all ${
+          filledCount > 0
+            ? 'bg-green-500 text-black hover:bg-green-400 active:scale-[0.99]'
+            : 'bg-gray-800 text-gray-600 cursor-not-allowed'
+        } disabled:opacity-60`}
+      >
+        {saving
+          ? 'Saving...'
+          : filledCount > 0
+          ? `Log Workout${filledCount < totalExercises ? ` (${filledCount}/${totalExercises} exercises)` : ''}`
+          : 'Fill in at least one exercise to log'
+        }
+      </button>
     </div>
   )
 }
