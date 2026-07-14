@@ -30,14 +30,16 @@ Moderate to minimal. Starting with fundamentals, progressive overload, and consi
 - **Carbs:** 240g
 - **Fat:** 70g
 
-## Equipment Inventory
-- Dumbbells (various weights)
-- Kettlebells
-- Adjustable bench
-- Resistance/elastic bands
+## Equipment Inventory (confirmed 2026-07-14)
+- Kettlebells: 24kg, 20kg, 16kg, 12kg x2
+- Dumbbells: 20lb x2, 15lb x2, 10lb x2, 5lb x2
+- Adjustable bench (height + angle)
+- Elastic bands: x-light, light, heavy, very heavy long, extra heavy long
 - Weighted jump rope
+- Ankle weights
+- Core sliding pads
 - Yoga mat
-- Full inventory photo pending from Nicolas
+- Note: 20lb DBs will be a ceiling soon — consider buying 25–30lb pair next
 
 ## Current Metrics
 - **Weight:** 164 lbs
