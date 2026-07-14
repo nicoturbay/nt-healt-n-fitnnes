@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
+import { useRemoteData } from '../hooks/useRemoteData'
 import { today, formatDate } from '../utils/date'
 import { DEFAULT_WORKOUT_PLAN, CATEGORY_META } from '../data/workoutPlan'
 import { Link } from 'react-router-dom'
@@ -23,8 +24,8 @@ function KPICard({ icon: Icon, label, value, sub, color = 'text-green-400', to }
 }
 
 export default function Dashboard() {
-  const [weightLog] = useLocalStorage('weightLog', [])
-  const [mealLogs] = useLocalStorage('mealLogs', [])
+  const [weightLog] = useRemoteData('weight-log.json', [])
+  const [mealLogs] = useRemoteData('meal-logs.json', [])
   const [nutritionGoals] = useLocalStorage('nutritionGoals', { calories: 2500, protein: 180, carbs: 280, fat: 80 })
   const [workoutLogs] = useLocalStorage('workoutLogs', [])
   const [workoutPlan] = useLocalStorage('workoutPlan', DEFAULT_WORKOUT_PLAN)
