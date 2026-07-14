@@ -99,6 +99,7 @@ export const DEFAULT_WORKOUT_PLAN = {
         },
         {
           id: 'incline-db-press',
+          image: '/exercises/incline-db-press.jpg',
           name: 'Incline Dumbbell Press',
           category: 'chest',
           description: 'Set bench to 30-45 degrees. Targets upper chest — critical for the Fight Club chest look. Control descent, full range of motion.',
