@@ -11,8 +11,8 @@ const MACRO_COLORS = {
 }
 
 function formatTime(meal) {
-  // Try logged_at first, then derive from id (which is Date.now())
-  const ts = meal.logged_at || (meal.id && meal.id > 1000000000000 ? new Date(meal.id) : null)
+  // Use created_at (set by Supabase), fall back to id (which is Date.now())
+  const ts = meal.created_at || (meal.id && meal.id > 1000000000000 ? new Date(meal.id) : null)
   if (!ts) return null
   const d = new Date(ts)
   if (isNaN(d)) return null
@@ -86,7 +86,7 @@ export default function Nutrition() {
   const [selectedDate, setSelectedDate] = useState(today())
   const [showGoalEditor, setShowGoalEditor] = useState(false)
   const [goalDraft, setGoalDraft] = useState(goals)
-  const [form, setForm] = useState({ name: '', calories: '', protein: '', carbs: '', fat: '', note: '', date: today(), time: new Date().toTimeString().slice(0,5) })
+  const [form, setForm] = useState({ name: '', calories: '', protein: '', carbs: '', fat: '', note: '', date: today() })
 
   const todayStr = today()
 
@@ -134,15 +134,9 @@ export default function Nutrition() {
 
   const addMeal = async () => {
     if (!form.name) return
-    // Build logged_at from date + time
-    const loggedAt = form.time
-      ? new Date(`${form.date}T${form.time}:00`).toISOString()
-      : new Date(`${form.date}T12:00:00`).toISOString()
-
     const entry = {
       id: Date.now(),
       date: form.date,
-      logged_at: loggedAt,
       name: form.name,
       note: form.note || null,
       calories: Number(form.calories) || 0,
@@ -154,7 +148,7 @@ export default function Nutrition() {
     const { error } = await supabase.from('meal_logs').insert(entry)
     if (!error) {
       setMeals(prev => [entry, ...prev])
-      setForm({ name: '', calories: '', protein: '', carbs: '', fat: '', note: '', date: today(), time: new Date().toTimeString().slice(0,5) })
+      setForm({ name: '', calories: '', protein: '', carbs: '', fat: '', note: '', date: today() })
     }
   }
 
@@ -285,10 +279,7 @@ export default function Nutrition() {
             <label className="label">Date</label>
             <input className="input" type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
           </div>
-          <div>
-            <label className="label">Time</label>
-            <input className="input" type="time" value={form.time} onChange={e => setForm(f => ({ ...f, time: e.target.value }))} />
-          </div>
+
           <div><label className="label">Calories</label><input className="input" type="number" placeholder="500" value={form.calories} onChange={e => setForm(f => ({ ...f, calories: e.target.value }))} /></div>
           <div><label className="label">Protein (g)</label><input className="input" type="number" placeholder="40" value={form.protein} onChange={e => setForm(f => ({ ...f, protein: e.target.value }))} /></div>
           <div><label className="label">Carbs (g)</label><input className="input" type="number" placeholder="60" value={form.carbs} onChange={e => setForm(f => ({ ...f, carbs: e.target.value }))} /></div>
