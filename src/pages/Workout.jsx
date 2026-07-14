@@ -51,9 +51,10 @@ function ExerciseCard({ exercise, onChange, completed }) {
 
       <p className="text-gray-500 text-xs px-4 pt-3 leading-relaxed">{exercise.description}</p>
 
-      <div className={`mx-4 mt-3 rounded-xl h-56 flex items-center justify-center ${meta.light} border border-dashed border-gray-800`}>
-        <div className="text-center">
-          <Dumbbell size={32} className={`${meta.text} mx-auto`} />
+      {/* aspect-[4/3] keeps ratio consistent at any card width */}
+      <div className={`mx-4 mt-3 rounded-xl aspect-[4/3] relative overflow-hidden ${meta.light} border border-dashed border-gray-800`}>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <Dumbbell size={32} className={`${meta.text}`} />
           <p className="text-xs text-gray-600 mt-2">Illustration coming soon</p>
         </div>
       </div>
