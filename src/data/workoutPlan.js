@@ -27,6 +27,7 @@ export const DEFAULT_WORKOUT_PLAN = {
         {
           id: 'bench-press',
           name: 'Barbell Bench Press',
+          image: '/exercises/bench-press.jpg',
           category: 'chest',
           description: 'Primary chest builder. Keep shoulder blades retracted, control the descent for 2–3 seconds.',
           targetSets: 4,
@@ -35,6 +36,7 @@ export const DEFAULT_WORKOUT_PLAN = {
         {
           id: 'incline-db-press',
           name: 'Incline Dumbbell Press',
+          image: '/exercises/incline-db-press.jpg',
           category: 'chest',
           description: 'Upper chest focus. Set bench to 30–45°. Keep core tight.',
           targetSets: 3,
@@ -43,6 +45,7 @@ export const DEFAULT_WORKOUT_PLAN = {
         {
           id: 'lateral-raises',
           name: 'Cable Lateral Raises',
+          image: '/exercises/lateral-raises.jpg',
           category: 'shoulders',
           description: 'Lateral deltoid isolation. Lead with the elbow, not the hand. Control the negative.',
           targetSets: 4,
@@ -51,6 +54,7 @@ export const DEFAULT_WORKOUT_PLAN = {
         {
           id: 'overhead-press',
           name: 'Overhead Press',
+          image: '/exercises/overhead-press.jpg',
           category: 'shoulders',
           description: 'Compound shoulder movement. Brace your core, squeeze glutes. Press straight up.',
           targetSets: 3,
@@ -59,6 +63,7 @@ export const DEFAULT_WORKOUT_PLAN = {
         {
           id: 'tricep-pushdown',
           name: 'Tricep Pushdown',
+          image: '/exercises/tricep-pushdown.jpg',
           category: 'triceps',
           description: 'Cable pushdown with rope or bar. Keep elbows locked at sides. Full extension at bottom.',
           targetSets: 3,
@@ -67,6 +72,7 @@ export const DEFAULT_WORKOUT_PLAN = {
         {
           id: 'skull-crushers',
           name: 'Skull Crushers',
+          image: '/exercises/skull-crushers.jpg',
           category: 'triceps',
           description: 'EZ-bar to forehead, keep upper arms stationary. Excellent long-head tricep exercise.',
           targetSets: 3,
@@ -81,6 +87,7 @@ export const DEFAULT_WORKOUT_PLAN = {
         {
           id: 'rdl',
           name: 'Romanian Deadlift',
+          image: '/exercises/rdl.jpg',
           category: 'hamstrings',
           description: 'Hip hinge. Keep bar close to legs, feel hamstring stretch at bottom, drive hips forward at top.',
           targetSets: 4,
@@ -89,6 +96,7 @@ export const DEFAULT_WORKOUT_PLAN = {
         {
           id: 'pullups',
           name: 'Pull-Ups / Lat Pulldown',
+          image: '/exercises/pullups.jpg',
           category: 'back',
           description: 'Vertical pulling. Drive elbows down and back. Squeeze lats at bottom.',
           targetSets: 4,
@@ -97,6 +105,7 @@ export const DEFAULT_WORKOUT_PLAN = {
         {
           id: 'cable-rows',
           name: 'Seated Cable Rows',
+          image: '/exercises/cable-rows.jpg',
           category: 'back',
           description: 'Pull to lower chest, lead with elbows. Squeeze shoulder blades together at top.',
           targetSets: 3,
@@ -105,6 +114,7 @@ export const DEFAULT_WORKOUT_PLAN = {
         {
           id: 'face-pulls',
           name: 'Face Pulls',
+          image: '/exercises/face-pulls.jpg',
           category: 'shoulders',
           description: 'Rear delt and rotator cuff health. Pull rope toward face, ends flaring outward.',
           targetSets: 3,
@@ -113,6 +123,7 @@ export const DEFAULT_WORKOUT_PLAN = {
         {
           id: 'barbell-curls',
           name: 'Barbell Curls',
+          image: '/exercises/barbell-curls.jpg',
           category: 'biceps',
           description: 'Keep elbows at sides, full range of motion. Control the negative. No swinging.',
           targetSets: 3,
@@ -121,6 +132,7 @@ export const DEFAULT_WORKOUT_PLAN = {
         {
           id: 'hammer-curls',
           name: 'Hammer Curls',
+          image: '/exercises/hammer-curls.jpg',
           category: 'biceps',
           description: 'Neutral grip targets brachialis for arm thickness. Alternate or simultaneously.',
           targetSets: 3,
@@ -135,6 +147,7 @@ export const DEFAULT_WORKOUT_PLAN = {
         {
           id: 'squat',
           name: 'Barbell Back Squat',
+          image: '/exercises/squat.jpg',
           category: 'quads',
           description: 'King of leg exercises. Brace core, knees track over toes. Hit parallel or below.',
           targetSets: 4,
@@ -143,6 +156,7 @@ export const DEFAULT_WORKOUT_PLAN = {
         {
           id: 'leg-press',
           name: 'Leg Press',
+          image: '/exercises/leg-press.jpg',
           category: 'quads',
           description: 'Foot position determines focus: low = quads, high = glutes/hams. Full range.',
           targetSets: 3,
@@ -151,6 +165,7 @@ export const DEFAULT_WORKOUT_PLAN = {
         {
           id: 'leg-curls',
           name: 'Lying Leg Curls',
+          image: '/exercises/leg-curls.jpg',
           category: 'hamstrings',
           description: 'Full range of motion, pause and squeeze at top. Control the descent.',
           targetSets: 3,
@@ -159,6 +174,7 @@ export const DEFAULT_WORKOUT_PLAN = {
         {
           id: 'hip-thrust',
           name: 'Hip Thrust',
+          image: '/exercises/hip-thrust.jpg',
           category: 'glutes',
           description: 'Drive through heels, squeeze glutes hard at top. Keep chin tucked.',
           targetSets: 3,
@@ -167,6 +183,7 @@ export const DEFAULT_WORKOUT_PLAN = {
         {
           id: 'walking-lunges',
           name: 'Walking Lunges',
+          image: '/exercises/walking-lunges.jpg',
           category: 'quads',
           description: 'Keep torso upright, step long enough that front knee stays behind toes.',
           targetSets: 3,
@@ -175,6 +192,7 @@ export const DEFAULT_WORKOUT_PLAN = {
         {
           id: 'calf-raises',
           name: 'Standing Calf Raises',
+          image: '/exercises/calf-raises.jpg',
           category: 'calves',
           description: 'Full range of motion is key — all the way up, all the way down. Slow reps.',
           targetSets: 4,
