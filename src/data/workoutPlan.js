@@ -75,6 +75,7 @@ export const DEFAULT_WORKOUT_PLAN = {
         },
         {
           id: 'lateral-raises',
+          image: '/exercises/lateral-raises.jpg',
           name: 'Lateral Raises',
           category: 'shoulders',
           description: 'Lead with elbows. Raise to shoulder height, no higher. Lower over 3 seconds — the slow negative is the work. Key for the wide shoulder look.',
@@ -85,6 +86,7 @@ export const DEFAULT_WORKOUT_PLAN = {
         },
         {
           id: 'slider-mountain-climbers',
+          image: '/exercises/plank.jpg',
           name: 'Slider Mountain Climbers',
           category: 'core',
           description: 'Place feet on core sliders in plank position. Drive knees to chest alternately. Keep hips level. 30 seconds on, 15 off.',
@@ -178,6 +180,7 @@ export const DEFAULT_WORKOUT_PLAN = {
         },
         {
           id: 'overhead-tricep-ext',
+          image: '/exercises/db-tricep-ext.jpg',
           name: 'Overhead Tricep Extension',
           category: 'triceps',
           description: 'One DB held overhead with both hands. Lower behind head until elbows are at 90°, press back up. Hits the long head of tricep.',
