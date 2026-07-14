@@ -7,48 +7,63 @@
 - **Height:** 5'11" (180 cm)
 - **Weight:** 164 lbs (74.4 kg)
 - **Timezone:** America/New_York
-- **Status:** Profile started — goal, training history, and equipment pending
+- **Status:** Plan set — Phase 1 active
 
-## Biometrics
-- **BMI:** 22.9 (healthy range)
-- **Last weigh-in:** 2026-07-14
+## Goal
+Lean muscle recomposition. Build muscle while staying lean.
+Reference physique: Brad Pitt in Fight Club (~155 lbs, very low body fat, defined chest/shoulders/arms).
+Not a bulk. Not a cut. Replace softness with muscle.
 
-## Current Goal
-Not yet defined. Awaiting: primary goal, training experience, days per week, gym equipment, injuries.
+## Experience
+Moderate to minimal. Starting with fundamentals, progressive overload, and consistency.
 
 ## Active Workout Plan
-- **Plan:** Push / Pull / Legs (sample — not yet personalized)
-- **Schedule:** Mon Push · Tue Pull · Wed Legs · Thu Rest · Fri Push · Sat Pull · Sun Rest
-- **Phase:** Not yet started
+- **Plan:** Full Body 3x — Phase 1
+- **Schedule:** Mon Day A · Wed Day B · Fri Day A (alternating A/B each week)
+- **Phase:** 1 of 3 — Foundation (3 days/week for 4-6 weeks, then scale to 4-5)
+- **Equipment:** Dumbbells, kettlebells, adjustable bench, resistance bands, weighted jump rope, yoga mat
+- **Finisher:** Jump rope 10 min every session (key for lean aesthetic)
 
-## Nutrition Targets
-- **Calories:** Not set
-- **Protein:** Not set
-- **Carbs:** Not set
-- **Fat:** Not set
+## Nutrition Targets (Daily)
+- **Calories:** 2,400 (slight surplus for recomp)
+- **Protein:** 165g (1g per lb bodyweight)
+- **Carbs:** 240g
+- **Fat:** 70g
 
 ## Equipment Inventory
-Not yet provided.
+- Dumbbells (various weights)
+- Kettlebells
+- Adjustable bench
+- Resistance/elastic bands
+- Weighted jump rope
+- Yoga mat
+- Full inventory photo pending from Nicolas
 
 ## Current Metrics
 - **Weight:** 164 lbs
 - **Last weigh-in:** 2026-07-14
+- **BMI:** 22.9
 - **Streak:** 0 days
 
-## This Week
-- Workouts completed: 0
-- Meals logged: 0
+## Phase Progression
+- **Phase 1** (current): 3x full body, 4-6 weeks, build habit and baseline strength
+- **Phase 2**: 4x (add upper/lower split), introduce more volume
+- **Phase 3**: 5x (push/pull/legs + 2 full body), advanced programming
 
-## Active Notes
-- Site live at fit.nicoturbay.com
-- Data pipeline: GitHub JSON files via Maton API
-- Channels:
-  - #coach-clawckie (1526578779047071764) — coaching, plan, motivation, daily check-ins
-  - #fitness-it (1526614955057741854) — site updates, deploys, technical changes
-  - #nutrition (1526578882608631979) — meal photos and descriptions
-  - #progress (1526582927654129664) — progress photos and weight
-  - #data-input (1526607054100365372) — Oura, smart scale, screenshots
-- Context isolation: fitness data never crosses into KINCE or other projects
+## Channels
+- #coach-clawckie (1526578779047071764) — plan, coaching, motivation, daily check-ins
+- #fitness-it (1526614955057741854) — site updates, deploys, technical changes
+- #nutrition (1526578882608631979) — meal photos and descriptions
+- #progress (1526582927654129664) — progress photos and weight
+- #data-input (1526607054100365372) — Oura, smart scale, screenshots
+
+## Supabase
+- Project: https://gjusyswosfbrgngwjvbx.supabase.co
+- Tables: meal_logs, weight_log, workout_logs, progress_entries, nutrition_goals, user_profile
+- Site: fit.nicoturbay.com reads from Supabase in real time
+
+## Isolation Rule
+Fitness data never crosses into KINCE or any other project. This context loads only in fitness channels.
 
 ## Last Updated
-2026-07-14
+2026-07-14 — Plan set, Phase 1 active
