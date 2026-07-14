@@ -34,7 +34,12 @@ Not yet provided.
 ## Active Notes
 - Site live at fit.nicoturbay.com
 - Data pipeline: GitHub JSON files via Maton API
-- Channels: #nutrition (1526578882608631979) · #progress (1526582927654129664) · #data-input (1526607054100365372)
+- Channels:
+  - #coach-clawckie (1526578779047071764) — coaching, plan, motivation, daily check-ins
+  - #fitness-it (1526614955057741854) — site updates, deploys, technical changes
+  - #nutrition (1526578882608631979) — meal photos and descriptions
+  - #progress (1526582927654129664) — progress photos and weight
+  - #data-input (1526607054100365372) — Oura, smart scale, screenshots
 - Context isolation: fitness data never crosses into KINCE or other projects
 
 ## Last Updated
