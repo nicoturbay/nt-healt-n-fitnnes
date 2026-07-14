@@ -51,10 +51,10 @@ function ExerciseCard({ exercise, onChange, completed }) {
 
       <p className="text-gray-500 text-xs px-4 pt-3 leading-relaxed">{exercise.description}</p>
 
-      <div className={`mx-4 mt-3 rounded-xl h-20 flex items-center justify-center ${meta.light} border border-dashed border-gray-800`}>
+      <div className={`mx-4 mt-3 rounded-xl h-56 flex items-center justify-center ${meta.light} border border-dashed border-gray-800`}>
         <div className="text-center">
-          <Dumbbell size={18} className={`${meta.text} mx-auto`} />
-          <p className="text-[10px] text-gray-700 mt-0.5">Illustration coming soon</p>
+          <Dumbbell size={32} className={`${meta.text} mx-auto`} />
+          <p className="text-xs text-gray-600 mt-2">Illustration coming soon</p>
         </div>
       </div>
 
