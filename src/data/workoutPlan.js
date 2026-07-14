@@ -31,6 +31,7 @@ export const DEFAULT_WORKOUT_PLAN = {
       exercises: [
         {
           id: 'goblet-squat',
+          image: '/exercises/goblet-squat.jpg',
           name: 'Goblet Squat',
           category: 'quads',
           description: 'Hold KB at chest height. Feet shoulder-width, squat deep keeping chest tall and elbows inside knees. Drive through heels to stand.',
@@ -41,6 +42,7 @@ export const DEFAULT_WORKOUT_PLAN = {
         },
         {
           id: 'db-bench-press',
+          image: '/exercises/db-bench-press.jpg',
           name: 'Dumbbell Bench Press',
           category: 'chest',
           description: 'Flat bench. Dumbbells at chest, elbows at 45°. Press up and slightly inward. Lower for 3 seconds. Full range of motion.',
@@ -51,6 +53,7 @@ export const DEFAULT_WORKOUT_PLAN = {
         },
         {
           id: 'db-rdl',
+          image: '/exercises/rdl.jpg',
           name: 'Romanian Deadlift',
           category: 'hamstrings',
           description: 'Hold DBs or a KB in front. Push hips back, back flat, lower until hamstring stretch. Hip drive to return. Not a squat — hinge at the hip.',
@@ -61,6 +64,7 @@ export const DEFAULT_WORKOUT_PLAN = {
         },
         {
           id: 'db-row',
+          image: '/exercises/db-row.jpg',
           name: 'Single-Arm Dumbbell Row',
           category: 'back',
           description: 'Brace hand and knee on bench. Pull DB to hip, lead with elbow, not hand. Hold 1 second at top. Keep torso parallel to floor.',
@@ -91,6 +95,7 @@ export const DEFAULT_WORKOUT_PLAN = {
         },
         {
           id: 'jump-rope-a',
+          image: '/exercises/jump-rope.jpg',
           name: 'Jump Rope Finisher',
           category: 'cardio',
           description: '10 minutes with the weighted rope. Steady pace for 40 seconds, sprint for 20. This is non-negotiable — it is the primary tool for staying lean while building muscle.',
@@ -107,6 +112,7 @@ export const DEFAULT_WORKOUT_PLAN = {
       exercises: [
         {
           id: 'reverse-lunge',
+          image: '/exercises/reverse-lunge.jpg',
           name: 'Reverse Lunge',
           category: 'quads',
           description: 'Hold DBs at sides or KB in goblet position. Step back, lower back knee toward floor. Front knee stays over ankle. Alternate legs.',
@@ -117,6 +123,7 @@ export const DEFAULT_WORKOUT_PLAN = {
         },
         {
           id: 'incline-db-press',
+          image: '/exercises/incline-db-press.jpg',
           name: 'Incline Dumbbell Press',
           category: 'chest',
           description: 'Bench at 30–45°. Targets upper chest — the defining muscle for the Fight Club look. Full range, controlled descent.',
@@ -127,6 +134,7 @@ export const DEFAULT_WORKOUT_PLAN = {
         },
         {
           id: 'kb-swing',
+          image: '/exercises/kb-swing.jpg',
           name: 'Kettlebell Swing',
           category: 'glutes',
           description: 'Hip hinge, not a squat. Snap hips forward explosively, let KB float to shoulder height. Hike it back between legs. Posterior chain power + serious cardio.',
@@ -137,6 +145,7 @@ export const DEFAULT_WORKOUT_PLAN = {
         },
         {
           id: 'db-overhead-press',
+          image: '/exercises/overhead-press.jpg',
           name: 'Overhead Press',
           category: 'shoulders',
           description: 'Seated on bench for stability. Press DBs from shoulder height to lockout. Brace core. Do not arch lower back. Builds the shoulder cap.',
@@ -147,6 +156,7 @@ export const DEFAULT_WORKOUT_PLAN = {
         },
         {
           id: 'band-face-pulls',
+          image: '/exercises/face-pulls.jpg',
           name: 'Band Face Pulls',
           category: 'shoulders',
           description: 'Loop band around a post at head height. Pull to face, hands wide, elbows high. Rear delts and rotator cuff. Prevents injury, improves posture.',
@@ -157,6 +167,7 @@ export const DEFAULT_WORKOUT_PLAN = {
         },
         {
           id: 'db-curl',
+          image: '/exercises/db-curl.jpg',
           name: 'Bicep Curl',
           category: 'biceps',
           description: 'Alternate arms. Elbows pinned at sides. Full range — all the way down, all the way up. Control the lowering phase. No swinging.',
@@ -177,6 +188,7 @@ export const DEFAULT_WORKOUT_PLAN = {
         },
         {
           id: 'jump-rope-b',
+          image: '/exercises/jump-rope.jpg',
           name: 'Jump Rope Finisher',
           category: 'cardio',
           description: '10 minutes with the weighted rope. Steady 40s, sprint 20s. Every session, no exceptions.',
