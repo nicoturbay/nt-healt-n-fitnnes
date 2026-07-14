@@ -39,7 +39,7 @@ export default function Layout() {
 
       {/* Main content */}
       <main className="flex-1 md:ml-56 pb-24 md:pb-8">
-        <div className="max-w-6xl mx-auto px-4 pt-6">
+        <div className="w-full px-6 pt-6">
           <Outlet />
         </div>
       </main>
