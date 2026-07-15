@@ -20,6 +20,74 @@ const KPI_LABEL = {
   metabolic_age:       { label: 'Metabolic Age',    unit: 'yr',   icon: '🕐',  good: 'lower',  target: 34,   note: '8 years below real age' },
 }
 
+// ─── Goal Progress Engine (Fight Club targets) ───────────────────────────
+const BASELINES = {
+  weight_lb:           163.1,
+  body_fat_pct:        16.0,
+  fat_free_lb:         136.9,
+  muscle_mass_lb:      130.0,
+  skeletal_muscle_pct: 54.2,
+  body_water_pct:      60.5,
+  subcut_fat_pct:      14.2,
+  bone_mass_lb:        6.8,
+  bmr_kcal:            1695,
+  visceral_fat:        6,
+  protein_pct:         19.1,
+  metabolic_age:       39,
+  bmi:                 22.8,
+}
+
+const GOAL_WEIGHTS = {
+  body_fat_pct:        25,
+  muscle_mass_lb:      18,
+  weight_lb:           12,
+  subcut_fat_pct:      10,
+  fat_free_lb:          8,
+  skeletal_muscle_pct:  7,
+  visceral_fat:         6,
+  body_water_pct:       5,
+  metabolic_age:        4,
+  bmr_kcal:             3,
+  protein_pct:          1,
+  bone_mass_lb:         1,
+}
+
+const START_DATE = new Date('2026-07-15')
+const TOTAL_WEEKS = 22
+
+function weeksElapsed() {
+  return Math.max(0, Math.round((new Date() - START_DATE) / (7 * 24 * 60 * 60 * 1000)))
+}
+
+function computeGoalScore(data) {
+  if (!data) return { score: 0, breakdown: [] }
+  let weightedSum = 0, totalWeight = 0
+  const breakdown = []
+  for (const [field, weight] of Object.entries(GOAL_WEIGHTS)) {
+    const meta = KPI_LABEL[field]
+    const current = data[field]
+    const baseline = BASELINES[field]
+    const target = meta?.target
+    if (current == null || baseline == null || target == null) continue
+    let progress
+    if (meta.good === 'stable') {
+      progress = 1.0
+    } else if (meta.good === 'lower') {
+      const range = baseline - target
+      progress = range === 0 ? 1 : Math.min(1, Math.max(0, (baseline - current) / range))
+    } else {
+      const range = target - baseline
+      progress = range === 0 ? 1 : Math.min(1, Math.max(0, (current - baseline) / range))
+    }
+    weightedSum += weight * progress
+    totalWeight += weight
+    breakdown.push({ field, label: meta.label, icon: meta.icon, unit: meta.unit ?? '', progress, weight, current, target })
+  }
+  const score = totalWeight > 0 ? Math.round((weightedSum / totalWeight) * 100) : 0
+  breakdown.sort((a, b) => a.progress - b.progress) // lowest progress first
+  return { score, breakdown }
+}
+
 // ─── Absolute Health Score Engine ──────────────────────────────────────────
 // Scores each KPI against clinical benchmarks for a 42-year-old male.
 // Not progress toward a goal — your actual health state, right now.
@@ -211,6 +279,90 @@ function OverallScoreCard({ latest, prev }) {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Goal Progress Card ───────────────────────────────────────────────────
+function GoalProgressCard({ latest, prev }) {
+  const { score, breakdown } = computeGoalScore(latest)
+  const { score: prevScore } = computeGoalScore(prev)
+  const delta    = prev ? score - prevScore : null
+  const elapsed  = weeksElapsed()
+  const remaining = Math.max(0, TOTAL_WEEKS - elapsed)
+
+  const goalColor =
+    score >= 80 ? '#f59e0b' :
+    score >= 55 ? '#34d399' :
+    score >= 30 ? '#60a5fa' : '#a78bfa'
+
+  const goalLabel =
+    score >= 95 ? 'Fight Club Ready' :
+    score >= 75 ? 'Advanced'         :
+    score >= 50 ? 'Strong Progress'  :
+    score >= 25 ? 'Building'         : 'Getting Started'
+
+  return (
+    <div
+      className="col-span-2 sm:col-span-3 lg:col-span-4 bg-zinc-900 border border-zinc-800 rounded-xl p-5"
+      style={{ borderColor: goalColor + '33' }}
+    >
+      <div className="flex flex-col sm:flex-row gap-5 items-start">
+
+        {/* LEFT — arc + label */}
+        <div className="flex items-center gap-4 sm:flex-col sm:items-center sm:gap-2 shrink-0">
+          <ArcRing score={score} color={goalColor} />
+          <div className="sm:text-center">
+            <div className="font-bold text-base" style={{ color: goalColor }}>{goalLabel}</div>
+            <div className="text-xs text-zinc-500 mt-1">Goal progress · 22 wks</div>
+            <div className="text-xs text-zinc-600 mt-0.5">
+              {delta !== null && (
+                <span className={delta >= 0 ? 'text-emerald-400' : 'text-rose-400'}>
+                  {delta >= 0 ? '+' : ''}{delta} pts &nbsp;
+                </span>
+              )}
+              Wk {elapsed} · {remaining} left
+            </div>
+          </div>
+        </div>
+
+        {/* DIVIDER */}
+        <div className="hidden sm:block w-px bg-zinc-800 self-stretch" />
+
+        {/* RIGHT — KPI progress bars, lowest first */}
+        <div className="flex-1 w-full">
+          <div className="text-xs text-zinc-500 uppercase tracking-wide mb-3">Progress toward Fight Club · furthest behind first</div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
+            {breakdown.map(({ field, label, icon, unit, progress, weight, current, target }) => {
+              const pct = Math.round(progress * 100)
+              const barColor =
+                pct >= 75 ? '#34d399' :
+                pct >= 45 ? '#60a5fa' :
+                pct >= 20 ? '#fb923c' : '#f87171'
+              return (
+                <div key={field}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs text-zinc-400 flex items-center gap-1">
+                      <span>{icon}</span>{label}
+                    </span>
+                    <span className="text-xs font-semibold" style={{ color: barColor }}>{pct}%</span>
+                  </div>
+                  <div className="bg-zinc-800 rounded-full h-1.5 overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-700"
+                      style={{ width: `${pct}%`, backgroundColor: barColor }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-[10px] text-zinc-700 mt-0.5">
+                    <span>{current != null ? (typeof current === 'number' && current % 1 !== 0 ? current.toFixed(1) : current) : '—'}{unit}</span>
+                    <span>Target: {target}{unit}</span>
+                  </div>
+                </div>
+              )
+            })}
           </div>
         </div>
       </div>
@@ -574,6 +726,7 @@ export default function Dashboard() {
             <p className="text-xs text-zinc-600 mb-3">Tap any card to see your progress over time.</p>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
               <OverallScoreCard latest={latest} prev={prev} />
+              <GoalProgressCard latest={latest} prev={prev} />
               {bodyKpis.map(field => (
                 <KPICard key={field} field={field} value={latest[field]} prev={prev} onClick={handleKpiClick} />
               ))}
