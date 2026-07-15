@@ -1,4 +1,16 @@
-export const today = () => new Date().toISOString().split('T')[0]
+// Always derive the current date in Eastern time to avoid UTC rollover after 8 PM ET
+export const today = () =>
+  new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date())
+
+// Format any Date object as YYYY-MM-DD in Eastern time
+export const dateToET = (date) =>
+  new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(date)
+
+// Eastern day-of-week (0=Sun…6=Sat) for any Date object
+export const getDayOfWeekET = (date = new Date()) => {
+  const dayStr = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', weekday: 'short' }).format(date)
+  return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].indexOf(dayStr)
+}
 
 export const formatDate = (dateStr) => {
   const d = new Date(dateStr + 'T00:00:00')
