@@ -1,23 +1,31 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
-import { X } from 'lucide-react'
+import {
+  X, Scale, BarChart2, Flame, Dumbbell, Zap, Activity,
+  Droplets, Layers, Shield, Heart, Beef, Clock
+} from 'lucide-react'
+
+function KpiIcon({ icon: Icon, size = 16, className = '' }) {
+  if (!Icon) return null
+  return <Icon size={size} className={className} />
+}
 
 // Targets: Fight Club physique — ~10% BF, ~158 lb, +5 lb muscle
 // Nicolas: 42M, 5'11", baseline 163.1 lb / 16% BF
 const KPI_LABEL = {
-  weight_lb:           { label: 'Weight',          unit: 'lb',   icon: '⚖️',  good: 'lower',  target: 158,  note: 'Drop ~5 lb fat, gain ~5 lb muscle' },
-  bmi:                 { label: 'BMI',              unit: '',     icon: '📊',  good: 'lower',  target: 22.0, note: 'Lean but not underweight' },
-  body_fat_pct:        { label: 'Body Fat',         unit: '%',    icon: '🔥',  good: 'lower',  target: 10,   note: 'Fight Club definition starts here' },
-  fat_free_lb:         { label: 'Lean Mass',        unit: 'lb',   icon: '💪',  good: 'higher', target: 142,  note: '+5 lb from current baseline' },
-  muscle_mass_lb:      { label: 'Muscle Mass',      unit: 'lb',   icon: '🦾',  good: 'higher', target: 135,  note: '+5 lb lean muscle over 16-20 wks' },
-  skeletal_muscle_pct: { label: 'Skeletal Muscle',  unit: '%',    icon: '🏋️',  good: 'higher', target: 57,   note: 'Rises as fat drops' },
-  body_water_pct:      { label: 'Body Water',       unit: '%',    icon: '💧',  good: 'higher', target: 63,   note: 'Higher with more muscle' },
-  subcut_fat_pct:      { label: 'Subcutaneous Fat', unit: '%',    icon: '📏',  good: 'lower',  target: 9,    note: 'Visible cuts below 10%' },
-  bone_mass_lb:        { label: 'Bone Mass',        unit: 'lb',   icon: '🦴',  good: 'stable', target: 6.8,  note: 'Maintain — already optimal' },
-  bmr_kcal:            { label: 'BMR',              unit: 'kcal', icon: '⚡',  good: 'higher', target: 1780, note: 'More muscle = higher resting burn' },
-  visceral_fat:        { label: 'Visceral Fat',     unit: '',     icon: '🫀',  good: 'lower',  target: 4,    note: 'Already excellent — push lower' },
-  protein_pct:         { label: 'Protein',          unit: '%',    icon: '🥩',  good: 'higher', target: 21,   note: 'Rises with muscle mass gains' },
-  metabolic_age:       { label: 'Metabolic Age',    unit: 'yr',   icon: '🕐',  good: 'lower',  target: 34,   note: '8 years below real age' },
+  weight_lb:           { label: 'Weight',          unit: 'lb',   icon: Scale,    good: 'lower',  target: 158,  note: 'Drop ~5 lb fat, gain ~5 lb muscle' },
+  bmi:                 { label: 'BMI',              unit: '',     icon: BarChart2, good: 'lower',  target: 22.0, note: 'Lean but not underweight' },
+  body_fat_pct:        { label: 'Body Fat',         unit: '%',    icon: Flame,    good: 'lower',  target: 10,   note: 'Fight Club definition starts here' },
+  fat_free_lb:         { label: 'Lean Mass',        unit: 'lb',   icon: Dumbbell, good: 'higher', target: 142,  note: '+5 lb from current baseline' },
+  muscle_mass_lb:      { label: 'Muscle Mass',      unit: 'lb',   icon: Zap,      good: 'higher', target: 135,  note: '+5 lb lean muscle over 16-20 wks' },
+  skeletal_muscle_pct: { label: 'Skeletal Muscle',  unit: '%',    icon: Activity, good: 'higher', target: 57,   note: 'Rises as fat drops' },
+  body_water_pct:      { label: 'Body Water',       unit: '%',    icon: Droplets, good: 'higher', target: 63,   note: 'Higher with more muscle' },
+  subcut_fat_pct:      { label: 'Subcutaneous Fat', unit: '%',    icon: Layers,   good: 'lower',  target: 9,    note: 'Visible cuts below 10%' },
+  bone_mass_lb:        { label: 'Bone Mass',        unit: 'lb',   icon: Shield,   good: 'stable', target: 6.8,  note: 'Maintain — already optimal' },
+  bmr_kcal:            { label: 'BMR',              unit: 'kcal', icon: Zap,      good: 'higher', target: 1780, note: 'More muscle = higher resting burn' },
+  visceral_fat:        { label: 'Visceral Fat',     unit: '',     icon: Heart,    good: 'lower',  target: 4,    note: 'Already excellent — push lower' },
+  protein_pct:         { label: 'Protein',          unit: '%',    icon: Beef,     good: 'higher', target: 21,   note: 'Rises with muscle mass gains' },
+  metabolic_age:       { label: 'Metabolic Age',    unit: 'yr',   icon: Clock,    good: 'lower',  target: 34,   note: '8 years below real age' },
 }
 
 // ─── Goal Progress Engine (Fight Club targets) ───────────────────────────
@@ -261,7 +269,7 @@ function OverallScoreCard({ latest, prev }) {
               <div key={field}>
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-xs text-zinc-400 flex items-center gap-1">
-                    <span>{icon}</span>{label}
+                    <KpiIcon icon={KPI_LABEL[field]?.icon} size={12} className="text-zinc-500" />{label}
                   </span>
                   <span className="text-xs font-semibold" style={{ color: tier.color }}>
                     {tier.label}
@@ -346,7 +354,7 @@ function GoalProgressCard({ latest, prev }) {
                 <div key={field}>
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-xs text-zinc-400 flex items-center gap-1">
-                      <span>{icon}</span>{label}
+                      <KpiIcon icon={KPI_LABEL[field]?.icon} size={12} className="text-zinc-500" />{label}
                     </span>
                     <span className="text-xs font-semibold" style={{ color: barColor }}>{pct}%</span>
                   </div>
@@ -570,7 +578,7 @@ function KPIModal({ field, meta, onClose }) {
         <div className="flex items-start justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xl">{meta.icon}</span>
+              <KpiIcon icon={meta.icon} size={20} className="text-zinc-400" />
               <h2 className="text-lg font-bold text-white">{meta.label}</h2>
               {meta.unit && <span className="text-zinc-500 text-sm">({meta.unit})</span>}
             </div>
@@ -631,7 +639,7 @@ function KPICard({ field, value, prev, onClick }) {
     >
       <div className="flex items-center justify-between">
         <span className="text-xs text-zinc-500 uppercase tracking-wide">{meta.label}</span>
-        <span className="text-base">{meta.icon}</span>
+        <KpiIcon icon={meta.icon} size={15} className="text-zinc-500" />
       </div>
       <div className="flex items-end gap-2">
         <span className="text-2xl font-bold text-white">
