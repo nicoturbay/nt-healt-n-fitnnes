@@ -2,20 +2,22 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { X } from 'lucide-react'
 
+// Targets: Fight Club physique — ~10% BF, ~158 lb, +5 lb muscle
+// Nicolas: 42M, 5'11", baseline 163.1 lb / 16% BF
 const KPI_LABEL = {
-  weight_lb:           { label: 'Weight',          unit: 'lb',   icon: '⚖️',  good: 'lower',  target: 162 },
-  bmi:                 { label: 'BMI',              unit: '',     icon: '📊',  good: 'lower',  target: 22.0 },
-  body_fat_pct:        { label: 'Body Fat',         unit: '%',    icon: '🔥',  good: 'lower',  target: 12 },
-  fat_free_lb:         { label: 'Lean Mass',        unit: 'lb',   icon: '💪',  good: 'higher', target: 140 },
-  muscle_mass_lb:      { label: 'Muscle Mass',      unit: 'lb',   icon: '🦾',  good: 'higher', target: 136 },
-  skeletal_muscle_pct: { label: 'Skeletal Muscle',  unit: '%',    icon: '🏋️',  good: 'higher', target: 56 },
-  body_water_pct:      { label: 'Body Water',       unit: '%',    icon: '💧',  good: 'higher', target: 62 },
-  subcut_fat_pct:      { label: 'Subcutaneous Fat', unit: '%',    icon: '📏',  good: 'lower',  target: 12 },
-  bone_mass_lb:        { label: 'Bone Mass',        unit: 'lb',   icon: '🦴',  good: 'stable', target: 6.8 },
-  bmr_kcal:            { label: 'BMR',              unit: 'kcal', icon: '⚡',  good: 'higher', target: 1750 },
-  visceral_fat:        { label: 'Visceral Fat',     unit: '',     icon: '🫀',  good: 'lower',  target: 5 },
-  protein_pct:         { label: 'Protein',          unit: '%',    icon: '🥩',  good: 'higher', target: 21 },
-  metabolic_age:       { label: 'Metabolic Age',    unit: 'yr',   icon: '🕐',  good: 'lower',  target: 35 },
+  weight_lb:           { label: 'Weight',          unit: 'lb',   icon: '⚖️',  good: 'lower',  target: 158,  note: 'Drop ~5 lb fat, gain ~5 lb muscle' },
+  bmi:                 { label: 'BMI',              unit: '',     icon: '📊',  good: 'lower',  target: 22.0, note: 'Lean but not underweight' },
+  body_fat_pct:        { label: 'Body Fat',         unit: '%',    icon: '🔥',  good: 'lower',  target: 10,   note: 'Fight Club definition starts here' },
+  fat_free_lb:         { label: 'Lean Mass',        unit: 'lb',   icon: '💪',  good: 'higher', target: 142,  note: '+5 lb from current baseline' },
+  muscle_mass_lb:      { label: 'Muscle Mass',      unit: 'lb',   icon: '🦾',  good: 'higher', target: 135,  note: '+5 lb lean muscle over 16-20 wks' },
+  skeletal_muscle_pct: { label: 'Skeletal Muscle',  unit: '%',    icon: '🏋️',  good: 'higher', target: 57,   note: 'Rises as fat drops' },
+  body_water_pct:      { label: 'Body Water',       unit: '%',    icon: '💧',  good: 'higher', target: 63,   note: 'Higher with more muscle' },
+  subcut_fat_pct:      { label: 'Subcutaneous Fat', unit: '%',    icon: '📏',  good: 'lower',  target: 9,    note: 'Visible cuts below 10%' },
+  bone_mass_lb:        { label: 'Bone Mass',        unit: 'lb',   icon: '🦴',  good: 'stable', target: 6.8,  note: 'Maintain — already optimal' },
+  bmr_kcal:            { label: 'BMR',              unit: 'kcal', icon: '⚡',  good: 'higher', target: 1780, note: 'More muscle = higher resting burn' },
+  visceral_fat:        { label: 'Visceral Fat',     unit: '',     icon: '🫀',  good: 'lower',  target: 4,    note: 'Already excellent — push lower' },
+  protein_pct:         { label: 'Protein',          unit: '%',    icon: '🥩',  good: 'higher', target: 21,   note: 'Rises with muscle mass gains' },
+  metabolic_age:       { label: 'Metabolic Age',    unit: 'yr',   icon: '🕐',  good: 'lower',  target: 34,   note: '8 years below real age' },
 }
 
 function trend(curr, prev, key) {
@@ -223,7 +225,7 @@ function KPIModal({ field, meta, onClose }) {
               {meta.unit && <span className="text-zinc-500 text-sm">({meta.unit})</span>}
             </div>
             {meta.target != null && (
-              <p className="text-xs text-zinc-500 mt-0.5">Target: {meta.target}{meta.unit}</p>
+              <p className="text-xs text-zinc-500 mt-0.5">Target: {meta.target}{meta.unit}{meta.note && <span className="text-zinc-600"> · {meta.note}</span>}</p>
             )}
           </div>
           <button onClick={onClose} className="text-zinc-600 hover:text-white transition-colors p-1">
@@ -293,7 +295,7 @@ function KPICard({ field, value, prev, onClick }) {
         )}
       </div>
       {meta.target != null && (
-        <div className="text-xs text-zinc-600 mt-1">Target: {meta.target}{meta.unit}</div>
+        <div className="text-xs text-zinc-600 mt-1" title={meta.note}>Target: {meta.target}{meta.unit}</div>
       )}
     </button>
   )
