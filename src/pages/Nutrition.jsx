@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { today, formatDate } from '../utils/date'
-import { Plus, Trash2, Target, Flame, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Calendar } from 'lucide-react'
+import { Plus, Trash2, Target, Flame, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Calendar, X } from 'lucide-react'
 
 const MACRO_COLORS = {
   calories: { bar: 'bg-orange-400', text: 'text-orange-400' },
@@ -86,6 +86,7 @@ export default function Nutrition() {
   const [selectedDate, setSelectedDate] = useState(today())
   const [showGoalEditor, setShowGoalEditor] = useState(false)
   const [goalDraft, setGoalDraft] = useState(goals)
+  const [showLogModal, setShowLogModal] = useState(false)
   const [form, setForm] = useState({ name: '', calories: '', protein: '', carbs: '', fat: '', note: '', date: today() })
 
   const todayStr = today()
@@ -132,6 +133,11 @@ export default function Nutrition() {
     carbs: goals.carbs * mult,       fat: goals.fat * mult,
   }
 
+  const openLogModal = () => {
+    setForm(f => ({ ...f, date: selectedDate }))
+    setShowLogModal(true)
+  }
+
   const addMeal = async () => {
     if (!form.name) return
     const entry = {
@@ -149,6 +155,7 @@ export default function Nutrition() {
     if (!error) {
       setMeals(prev => [entry, ...prev])
       setForm({ name: '', calories: '', protein: '', carbs: '', fat: '', note: '', date: today() })
+      setShowLogModal(false)
     }
   }
 
@@ -267,31 +274,6 @@ export default function Nutrition() {
         </div>
       </div>
 
-      {/* Log form */}
-      <div className="card space-y-3">
-        <p className="font-semibold text-sm">Log a Meal</p>
-        <div className="grid grid-cols-2 gap-2">
-          <div className="col-span-2">
-            <label className="label">Meal Name</label>
-            <input className="input" placeholder="e.g. Chicken & rice bowl" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
-          </div>
-          <div>
-            <label className="label">Date</label>
-            <input className="input" type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
-          </div>
-
-          <div><label className="label">Calories</label><input className="input" type="number" placeholder="500" value={form.calories} onChange={e => setForm(f => ({ ...f, calories: e.target.value }))} /></div>
-          <div><label className="label">Protein (g)</label><input className="input" type="number" placeholder="40" value={form.protein} onChange={e => setForm(f => ({ ...f, protein: e.target.value }))} /></div>
-          <div><label className="label">Carbs (g)</label><input className="input" type="number" placeholder="60" value={form.carbs} onChange={e => setForm(f => ({ ...f, carbs: e.target.value }))} /></div>
-          <div><label className="label">Fat (g)</label><input className="input" type="number" placeholder="15" value={form.fat} onChange={e => setForm(f => ({ ...f, fat: e.target.value }))} /></div>
-          <div className="col-span-2">
-            <label className="label">Note</label>
-            <input className="input" placeholder="e.g. post-workout" value={form.note} onChange={e => setForm(f => ({ ...f, note: e.target.value }))} />
-          </div>
-        </div>
-        <button onClick={addMeal} className="btn-primary w-full flex items-center justify-center gap-2"><Plus size={16} /> Log Meal</button>
-      </div>
-
       {/* Meal list */}
       {filtered.length === 0 ? (
         <div className="card flex flex-col items-center py-10 text-center">
@@ -310,6 +292,52 @@ export default function Nutrition() {
               <div className="space-y-2">{byDate[date].map(m => <MealCard key={m.id} meal={m} onDelete={deleteMeal} />)}</div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Log Meal button */}
+      <button
+        onClick={openLogModal}
+        className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-dashed border-gray-700 text-gray-400 hover:border-green-500 hover:text-green-400 transition-colors text-sm font-medium"
+      >
+        <Plus size={16} /> Log a Meal
+      </button>
+
+      {/* Log Meal modal */}
+      {showLogModal && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70" onClick={() => setShowLogModal(false)}>
+          <div
+            className="bg-zinc-900 border border-zinc-800 rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md p-5 space-y-4"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between">
+              <p className="font-semibold text-base">Log a Meal</p>
+              <button onClick={() => setShowLogModal(false)} className="text-gray-600 hover:text-white transition-colors p-1">
+                <X size={18} />
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="col-span-2">
+                <label className="label">Meal Name</label>
+                <input className="input" placeholder="e.g. Chicken & rice bowl" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} autoFocus />
+              </div>
+              <div>
+                <label className="label">Date</label>
+                <input className="input" type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
+              </div>
+              <div><label className="label">Calories</label><input className="input" type="number" placeholder="500" value={form.calories} onChange={e => setForm(f => ({ ...f, calories: e.target.value }))} /></div>
+              <div><label className="label">Protein (g)</label><input className="input" type="number" placeholder="40" value={form.protein} onChange={e => setForm(f => ({ ...f, protein: e.target.value }))} /></div>
+              <div><label className="label">Carbs (g)</label><input className="input" type="number" placeholder="60" value={form.carbs} onChange={e => setForm(f => ({ ...f, carbs: e.target.value }))} /></div>
+              <div><label className="label">Fat (g)</label><input className="input" type="number" placeholder="15" value={form.fat} onChange={e => setForm(f => ({ ...f, fat: e.target.value }))} /></div>
+              <div className="col-span-2">
+                <label className="label">Note (optional)</label>
+                <input className="input" placeholder="e.g. post-workout" value={form.note} onChange={e => setForm(f => ({ ...f, note: e.target.value }))} />
+              </div>
+            </div>
+            <button onClick={addMeal} className="btn-primary w-full flex items-center justify-center gap-2">
+              <Plus size={16} /> Log Meal
+            </button>
+          </div>
         </div>
       )}
     </div>
