@@ -20,6 +20,201 @@ const KPI_LABEL = {
   metabolic_age:       { label: 'Metabolic Age',    unit: 'yr',   icon: '🕐',  good: 'lower',  target: 34,   note: '8 years below real age' },
 }
 
+// ─── Composite Score Engine ───────────────────────────────────────────────
+// Baseline = Day 1 values (2026-07-15). Score = weighted % progress toward targets.
+const BASELINES = {
+  weight_lb:           163.1,
+  body_fat_pct:        16.0,
+  fat_free_lb:         136.9,
+  muscle_mass_lb:      130.0,
+  skeletal_muscle_pct: 54.2,
+  body_water_pct:      60.5,
+  subcut_fat_pct:      14.2,
+  bone_mass_lb:        6.8,
+  bmr_kcal:            1695,
+  visceral_fat:        6,
+  protein_pct:         19.1,
+  metabolic_age:       39,
+  bmi:                 22.8,
+}
+
+const WEIGHTS = {
+  body_fat_pct:        25,
+  muscle_mass_lb:      18,
+  weight_lb:           12,
+  subcut_fat_pct:      10,
+  fat_free_lb:          8,
+  skeletal_muscle_pct:  7,
+  visceral_fat:         6,
+  body_water_pct:       5,
+  metabolic_age:        4,
+  bmr_kcal:             3,
+  protein_pct:          1,
+  bone_mass_lb:         1,
+}
+
+const START_DATE = new Date('2026-07-15')
+const TOTAL_WEEKS = 22
+
+function computeScore(data) {
+  if (!data) return { score: 0, breakdown: [] }
+  let weightedSum = 0, totalWeight = 0
+  const breakdown = []
+  for (const [field, weight] of Object.entries(WEIGHTS)) {
+    const meta = KPI_LABEL[field]
+    const current = data[field]
+    const baseline = BASELINES[field]
+    const target = meta?.target
+    if (current == null || baseline == null || target == null) continue
+    let progress
+    if (meta.good === 'stable') {
+      progress = 1.0
+    } else if (meta.good === 'lower') {
+      const range = baseline - target
+      progress = range === 0 ? 1 : Math.min(1, Math.max(0, (baseline - current) / range))
+    } else {
+      const range = target - baseline
+      progress = range === 0 ? 1 : Math.min(1, Math.max(0, (current - baseline) / range))
+    }
+    weightedSum += weight * progress
+    totalWeight += weight
+    breakdown.push({ field, label: meta.label, icon: meta.icon, progress, weight })
+  }
+  const score = totalWeight > 0 ? Math.round((weightedSum / totalWeight) * 100) : 0
+  breakdown.sort((a, b) => b.weight - a.weight)
+  return { score, breakdown }
+}
+
+function scoreStatus(score) {
+  if (score >= 95) return { label: 'Fight Club Ready', color: '#f59e0b', ring: '#f59e0b' }
+  if (score >= 75) return { label: 'Advanced',         color: '#34d399', ring: '#34d399' }
+  if (score >= 55) return { label: 'Strong',           color: '#60a5fa', ring: '#60a5fa' }
+  if (score >= 35) return { label: 'Building',         color: '#a78bfa', ring: '#a78bfa' }
+  if (score >= 15) return { label: 'Getting Started',  color: '#fb923c', ring: '#fb923c' }
+  return                  { label: 'Day One',           color: '#f87171', ring: '#f87171' }
+}
+
+function weeksElapsed() {
+  const now = new Date()
+  return Math.max(0, Math.round((now - START_DATE) / (7 * 24 * 60 * 60 * 1000)))
+}
+
+// ─── Arc Ring (SVG) ───────────────────────────────────────────────────────
+function ArcRing({ score, color }) {
+  const R = 52, C = 64, STROKE = 9
+  const circ = 2 * Math.PI * R
+  // Arc goes from -225deg to +45deg (270deg sweep = 75% of circle)
+  const SWEEP = 0.75
+  const dashArray = circ
+  const trackOffset = circ * (1 - SWEEP)
+  const fillOffset  = circ * (1 - SWEEP * (score / 100))
+  const rot = -225
+  return (
+    <svg width={C * 2} height={C * 2} viewBox={`0 0 ${C*2} ${C*2}`} className="shrink-0">
+      {/* track */}
+      <circle cx={C} cy={C} r={R} fill="none" stroke="#27272a" strokeWidth={STROKE}
+        strokeDasharray={`${circ * SWEEP} ${circ * (1 - SWEEP)}`}
+        strokeLinecap="round"
+        transform={`rotate(${rot} ${C} ${C})`} />
+      {/* fill */}
+      <circle cx={C} cy={C} r={R} fill="none" stroke={color} strokeWidth={STROKE}
+        strokeDasharray={`${circ * SWEEP * (score/100)} ${circ * (1 - SWEEP * (score/100))}`}
+        strokeLinecap="round"
+        transform={`rotate(${rot} ${C} ${C})`}
+        style={{ transition: 'stroke-dasharray 0.8s ease' }} />
+      <text x={C} y={C - 4} textAnchor="middle" fill="white" fontSize="22" fontWeight="bold" fontFamily="sans-serif">
+        {score}
+      </text>
+      <text x={C} y={C + 14} textAnchor="middle" fill="#71717a" fontSize="9" fontFamily="sans-serif">
+        / 100
+      </text>
+    </svg>
+  )
+}
+
+// ─── Overall Score Card ───────────────────────────────────────────────────
+function OverallScoreCard({ latest, prev }) {
+  const { score, breakdown } = computeScore(latest)
+  const { score: prevScore }  = computeScore(prev)
+  const status   = scoreStatus(score)
+  const delta    = prev ? score - prevScore : null
+  const elapsed  = weeksElapsed()
+  const remaining = Math.max(0, TOTAL_WEEKS - elapsed)
+
+  // Top 6 weighted KPIs for the breakdown bars
+  const top = breakdown.slice(0, 6)
+
+  return (
+    <div
+      className="col-span-2 sm:col-span-3 lg:col-span-4 bg-zinc-900 border border-zinc-800 rounded-xl p-5"
+      style={{ borderColor: status.color + '44' }}
+    >
+      <div className="flex flex-col sm:flex-row gap-5 items-start">
+
+        {/* LEFT — arc + score + status */}
+        <div className="flex items-center gap-4 sm:flex-col sm:items-center sm:gap-2 shrink-0">
+          <ArcRing score={score} color={status.color} />
+          <div className="sm:text-center">
+            <div className="font-bold text-base" style={{ color: status.color }}>{status.label}</div>
+            <div className="text-xs text-zinc-500 mt-0.5">
+              {delta !== null && (
+                <span className={delta >= 0 ? 'text-emerald-400' : 'text-rose-400'}>
+                  {delta >= 0 ? '+' : ''}{delta} pts &nbsp;
+                </span>
+              )}
+              Week {elapsed} of {TOTAL_WEEKS}
+            </div>
+            {remaining > 0 && (
+              <div className="text-xs text-zinc-600 mt-0.5">{remaining} wks to Fight Club</div>
+            )}
+          </div>
+        </div>
+
+        {/* DIVIDER */}
+        <div className="hidden sm:block w-px bg-zinc-800 self-stretch" />
+
+        {/* RIGHT — KPI breakdown bars */}
+        <div className="flex-1 w-full">
+          <div className="text-xs text-zinc-500 uppercase tracking-wide mb-3">What's driving your score</div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5">
+            {top.map(({ field, label, icon, progress, weight }) => {
+              const pct = Math.round(progress * 100)
+              const barColor =
+                pct >= 75 ? '#34d399' :
+                pct >= 40 ? '#60a5fa' :
+                pct >= 15 ? '#fb923c' : '#f87171'
+              const val = latest?.[field]
+              const tgt = KPI_LABEL[field]?.target
+              const unit = KPI_LABEL[field]?.unit ?? ''
+              return (
+                <div key={field}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs text-zinc-400 flex items-center gap-1">
+                      <span>{icon}</span>{label}
+                      <span className="text-zinc-600">({weight}%)</span>
+                    </span>
+                    <span className="text-xs font-medium" style={{ color: barColor }}>{pct}%</span>
+                  </div>
+                  <div className="bg-zinc-800 rounded-full h-1.5 overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-700"
+                      style={{ width: `${pct}%`, backgroundColor: barColor }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-[10px] text-zinc-700 mt-0.5">
+                    <span>{val != null ? (typeof val === 'number' && val % 1 !== 0 ? val.toFixed(1) : val) : '—'}{unit}</span>
+                    <span>Goal: {tgt}{unit}</span>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function trend(curr, prev, key) {
   if (!prev || prev[key] == null || curr[key] == null) return null
   const delta = curr[key] - prev[key]
@@ -375,6 +570,7 @@ export default function Dashboard() {
             <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wide mb-3">Body Composition</h2>
             <p className="text-xs text-zinc-600 mb-3">Tap any card to see your progress over time.</p>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+              <OverallScoreCard latest={latest} prev={prev} />
               {bodyKpis.map(field => (
                 <KPICard key={field} field={field} value={latest[field]} prev={prev} onClick={handleKpiClick} />
               ))}
