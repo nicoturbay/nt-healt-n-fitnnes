@@ -626,20 +626,31 @@ function KPIModal({ field, meta, onClose }) {
 }
 
 // ─── KPI Card ─────────────────────────────────────────────────────────────
+function kpiCardColors(t, good) {
+  if (!t || t.dir === 'flat' || good === 'stable') return {
+    bg: 'bg-yellow-500/5', border: 'border-yellow-500/20', icon: 'text-yellow-500/50'
+  }
+  const positive = (good === 'higher' && t.dir === 'up') || (good === 'lower' && t.dir === 'down')
+  return positive
+    ? { bg: 'bg-emerald-500/10', border: 'border-emerald-500/25', icon: 'text-emerald-500/60' }
+    : { bg: 'bg-rose-500/10',    border: 'border-rose-500/25',    icon: 'text-rose-500/60'    }
+}
+
 function KPICard({ field, value, prev, onClick }) {
   const meta = KPI_LABEL[field]
   if (!meta) return null
   const t = trend({ [field]: value }, prev, field)
   const formatted = typeof value === 'number' && value % 1 !== 0 ? value.toFixed(1) : value
+  const colors = kpiCardColors(t, meta.good)
 
   return (
     <button
       onClick={() => onClick(field)}
-      className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex flex-col gap-1 text-left hover:border-zinc-600 hover:bg-zinc-800/60 active:scale-[0.98] transition-all cursor-pointer w-full"
+      className={`${colors.bg} border ${colors.border} rounded-xl p-4 flex flex-col gap-1 text-left hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer w-full`}
     >
       <div className="flex items-center justify-between">
-        <span className="text-xs text-zinc-500 uppercase tracking-wide">{meta.label}</span>
-        <KpiIcon icon={meta.icon} size={15} className="text-zinc-500" />
+        <span className="text-xs text-zinc-400 uppercase tracking-wide">{meta.label}</span>
+        <KpiIcon icon={meta.icon} size={15} className={colors.icon} />
       </div>
       <div className="flex items-end gap-2">
         <span className="text-2xl font-bold text-white">
