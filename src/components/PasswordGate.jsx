@@ -23,7 +23,7 @@ function setSession() {
 export default function PasswordGate({ children }) {
   const [authed, setAuthed] = useState(false)
   const [checked, setChecked] = useState(false)
-  const [pw, setPw] = useState(\'\')
+  const [pw, setPw] = useState("")
   const [error, setError] = useState(false)
   const [loading, setLoading] = useState(false)
 
@@ -42,7 +42,7 @@ export default function PasswordGate({ children }) {
       setAuthed(true)
     } else {
       setError(true)
-      setPw(\'\')
+      setPw("")
     }
     setLoading(false)
   }
@@ -65,9 +65,9 @@ export default function PasswordGate({ children }) {
             onChange={e => { setPw(e.target.value); setError(false) }}
             placeholder="Password"
             autoFocus
-            className={\`w-full bg-zinc-900 border rounded-xl px-4 py-3 text-white placeholder-zinc-600 outline-none text-sm transition-colors \${
-              error ? \'border-rose-500 focus:border-rose-400\' : \'border-zinc-800 focus:border-zinc-600\'
-            }\`}
+            className={`w-full bg-zinc-900 border rounded-xl px-4 py-3 text-white placeholder-zinc-600 outline-none text-sm transition-colors ${
+              error ? "border-rose-500 focus:border-rose-400" : "border-zinc-800 focus:border-zinc-600"
+            }`}
           />
           {error && <p className="text-rose-400 text-xs text-center">Incorrect password</p>}
           <button
@@ -75,7 +75,7 @@ export default function PasswordGate({ children }) {
             disabled={!pw || loading}
             className="w-full bg-white text-black font-semibold py-3 rounded-xl text-sm hover:bg-zinc-200 active:scale-[0.99] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            {loading ? \'Checking...\' : \'Enter\'}
+            {loading ? "Checking..." : "Enter"}
           </button>
         </form>
         <p className="text-zinc-700 text-xs text-center">Session lasts {AUTH_CONFIG.SESSION_DAYS} days</p>
