@@ -1,7 +1,7 @@
-import { useState, useCallback, useMemo, useEffect } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { supabase } from '../lib/supabase'
 import { useLocalStorage } from '../hooks/useLocalStorage'
-import { today } from '../utils/date'
+import { today, dateToET, getDayOfWeekET } from '../utils/date'
 import { DEFAULT_WORKOUT_PLAN, CATEGORY_META } from '../data/workoutPlan'
 import { CheckCircle2, Plus, Minus, Dumbbell, ChevronLeft, ChevronRight } from 'lucide-react'
 
@@ -123,7 +123,9 @@ const DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','
 const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 
 function dateFromOffset(offset) {
-  const d = new Date()
+  // Base the offset on Eastern midnight to avoid UTC date drift after 8 PM ET
+  const nowET = today() // YYYY-MM-DD in ET
+  const d = new Date(nowET + 'T12:00:00') // noon ET — safe from any DST edge
   d.setDate(d.getDate() + offset)
   return d
 }
@@ -136,22 +138,13 @@ function formatDayLabel(offset, date) {
 }
 
 export default function Workout() {
-  const [workoutPlan, setWorkoutPlan] = useLocalStorage('workoutPlan', DEFAULT_WORKOUT_PLAN)
-
-  // Version check: if stored plan is missing image fields, reset to latest default
-  useEffect(() => {
-    const allExercises = Object.values(workoutPlan.workouts || {}).flatMap(w => w.exercises || [])
-    const hasImages = allExercises.some(e => e.image)
-    if (allExercises.length > 0 && !hasImages) {
-      setWorkoutPlan(DEFAULT_WORKOUT_PLAN)
-    }
-  }, [])
+  const [workoutPlan] = useLocalStorage('workoutPlan', DEFAULT_WORKOUT_PLAN)
   const todayStr = today()
 
   // offset = days from today; 0 = today
   const [offset, setOffset] = useState(() => {
     // start on today if it has a workout, otherwise find next planned day
-    const dow = new Date().getDay()
+    const dow = getDayOfWeekET()
     if (workoutPlan.schedule?.[dow]) return 0
     for (let i = 1; i <= 7; i++) {
       if (workoutPlan.schedule?.[(dow + i) % 7]) return i
@@ -161,7 +154,7 @@ export default function Workout() {
 
   const selectedDate = useMemo(() => dateFromOffset(offset), [offset])
   const selectedDow = selectedDate.getDay()
-  const selectedDateStr = selectedDate.toISOString().split('T')[0]
+  const selectedDateStr = dateToET(selectedDate)
   const workoutKey = workoutPlan.schedule?.[selectedDow] ?? null
   const workout = workoutKey ? workoutPlan.workouts?.[workoutKey] : null
   const dayLabel = formatDayLabel(offset, selectedDate)
