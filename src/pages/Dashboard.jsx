@@ -20,83 +20,102 @@ const KPI_LABEL = {
   metabolic_age:       { label: 'Metabolic Age',    unit: 'yr',   icon: '🕐',  good: 'lower',  target: 34,   note: '8 years below real age' },
 }
 
-// ─── Composite Score Engine ───────────────────────────────────────────────
-// Baseline = Day 1 values (2026-07-15). Score = weighted % progress toward targets.
-const BASELINES = {
-  weight_lb:           163.1,
-  body_fat_pct:        16.0,
-  fat_free_lb:         136.9,
-  muscle_mass_lb:      130.0,
-  skeletal_muscle_pct: 54.2,
-  body_water_pct:      60.5,
-  subcut_fat_pct:      14.2,
-  bone_mass_lb:        6.8,
-  bmr_kcal:            1695,
-  visceral_fat:        6,
-  protein_pct:         19.1,
-  metabolic_age:       39,
-  bmi:                 22.8,
+// ─── Absolute Health Score Engine ──────────────────────────────────────────
+// Scores each KPI against clinical benchmarks for a 42-year-old male.
+// Not progress toward a goal — your actual health state, right now.
+
+function rangeScore(value, pts) {
+  if (value <= pts[0][0]) return pts[0][1]
+  if (value >= pts[pts.length - 1][0]) return pts[pts.length - 1][1]
+  for (let i = 0; i < pts.length - 1; i++) {
+    const [v0, s0] = pts[i], [v1, s1] = pts[i + 1]
+    if (value >= v0 && value <= v1) {
+      return Math.round(s0 + ((value - v0) / (v1 - v0)) * (s1 - s0))
+    }
+  }
+  return 0
 }
 
-const WEIGHTS = {
-  body_fat_pct:        25,
-  muscle_mass_lb:      18,
-  weight_lb:           12,
-  subcut_fat_pct:      10,
-  fat_free_lb:          8,
-  skeletal_muscle_pct:  7,
-  visceral_fat:         6,
-  body_water_pct:       5,
-  metabolic_age:        4,
-  bmr_kcal:             3,
-  protein_pct:          1,
+// Clinical reference ranges — 42-year-old male
+const HEALTH_RANGES = {
+  // ACE body fat standards: <6 essential, 6-13 athlete, 14-17 fit, 18-24 avg, 25+ obese
+  body_fat_pct:        v => rangeScore(v, [[6,100],[13,95],[17,82],[20,65],[24,40],[28,15],[33,0]]),
+  // Skeletal muscle %: 40-44 low, 44-50 avg, 50-55 good, 55+ excellent
+  skeletal_muscle_pct: v => rangeScore(v, [[38,0],[44,40],[50,72],[55,90],[59,100]]),
+  // Visceral fat: 1-4 excellent, 5-9 normal, 10-14 high, 15+ very high
+  visceral_fat:        v => rangeScore(v, [[1,100],[4,96],[9,68],[14,28],[20,0]]),
+  // Metabolic age vs chronological age 42
+  metabolic_age:       v => rangeScore(v, [[28,100],[35,95],[42,72],[48,45],[56,18],[65,0]]),
+  // Body water %: 55-65% healthy male range
+  body_water_pct:      v => rangeScore(v, [[50,15],[55,60],[60,86],[63,100],[67,84],[72,55]]),
+  // BMI: optimal 20-23 for lean males
+  bmi:                 v => rangeScore(v, [[16,15],[18.5,72],[20,100],[23,100],[25,74],[27.5,44],[30,10],[35,0]]),
+  // Subcutaneous fat %
+  subcut_fat_pct:      v => rangeScore(v, [[7,100],[11,90],[15,74],[18,54],[22,28],[28,0]]),
+  // Protein %: 16-20 normal, 20%+ excellent
+  protein_pct:         v => rangeScore(v, [[13,20],[16,58],[18,80],[20,96],[23,100]]),
+  // BMR for 42M at ~163 lb
+  bmr_kcal:            v => rangeScore(v, [[1350,25],[1600,65],[1700,82],[1800,96],[1950,100]]),
+  // Bone mass for 154-176 lb male
+  bone_mass_lb:        v => rangeScore(v, [[5.5,35],[6.2,70],[6.6,92],[6.8,100],[7.3,100],[7.9,78]]),
+}
+
+// Weight = how much this metric influences the overall score
+const SCORE_WEIGHTS = {
+  body_fat_pct:        26,
+  skeletal_muscle_pct: 20,
+  visceral_fat:        16,
+  metabolic_age:       14,
+  body_water_pct:       8,
+  bmi:                  6,
+  subcut_fat_pct:       4,
+  protein_pct:          3,
+  bmr_kcal:             2,
   bone_mass_lb:         1,
 }
 
-const START_DATE = new Date('2026-07-15')
-const TOTAL_WEEKS = 22
+function kpiTier(s) {
+  if (s >= 90) return { label: 'Elite',         color: '#f59e0b' }
+  if (s >= 75) return { label: 'Excellent',     color: '#34d399' }
+  if (s >= 60) return { label: 'Good',          color: '#60a5fa' }
+  if (s >= 45) return { label: 'Average',       color: '#a78bfa' }
+  if (s >= 28) return { label: 'Below Avg',     color: '#fb923c' }
+  return              { label: 'Poor',           color: '#f87171' }
+}
 
 function computeScore(data) {
   if (!data) return { score: 0, breakdown: [] }
   let weightedSum = 0, totalWeight = 0
   const breakdown = []
-  for (const [field, weight] of Object.entries(WEIGHTS)) {
-    const meta = KPI_LABEL[field]
+  for (const [field, weight] of Object.entries(SCORE_WEIGHTS)) {
+    const scoreFn = HEALTH_RANGES[field]
     const current = data[field]
-    const baseline = BASELINES[field]
-    const target = meta?.target
-    if (current == null || baseline == null || target == null) continue
-    let progress
-    if (meta.good === 'stable') {
-      progress = 1.0
-    } else if (meta.good === 'lower') {
-      const range = baseline - target
-      progress = range === 0 ? 1 : Math.min(1, Math.max(0, (baseline - current) / range))
-    } else {
-      const range = target - baseline
-      progress = range === 0 ? 1 : Math.min(1, Math.max(0, (current - baseline) / range))
-    }
-    weightedSum += weight * progress
+    if (!scoreFn || current == null) continue
+    const kpiScore = scoreFn(current)
+    weightedSum += weight * kpiScore
     totalWeight += weight
-    breakdown.push({ field, label: meta.label, icon: meta.icon, progress, weight })
+    breakdown.push({
+      field,
+      label:    KPI_LABEL[field]?.label ?? field,
+      icon:     KPI_LABEL[field]?.icon ?? '',
+      unit:     KPI_LABEL[field]?.unit ?? '',
+      kpiScore, weight, value: current,
+      tier: kpiTier(kpiScore),
+    })
   }
-  const score = totalWeight > 0 ? Math.round((weightedSum / totalWeight) * 100) : 0
-  breakdown.sort((a, b) => b.weight - a.weight)
+  const score = totalWeight > 0 ? Math.round(weightedSum / totalWeight) : 0
+  // sort weakest first — most actionable at top
+  breakdown.sort((a, b) => a.kpiScore - b.kpiScore)
   return { score, breakdown }
 }
 
 function scoreStatus(score) {
-  if (score >= 95) return { label: 'Fight Club Ready', color: '#f59e0b', ring: '#f59e0b' }
-  if (score >= 75) return { label: 'Advanced',         color: '#34d399', ring: '#34d399' }
-  if (score >= 55) return { label: 'Strong',           color: '#60a5fa', ring: '#60a5fa' }
-  if (score >= 35) return { label: 'Building',         color: '#a78bfa', ring: '#a78bfa' }
-  if (score >= 15) return { label: 'Getting Started',  color: '#fb923c', ring: '#fb923c' }
-  return                  { label: 'Day One',           color: '#f87171', ring: '#f87171' }
-}
-
-function weeksElapsed() {
-  const now = new Date()
-  return Math.max(0, Math.round((now - START_DATE) / (7 * 24 * 60 * 60 * 1000)))
+  if (score >= 90) return { label: 'Elite',         color: '#f59e0b' }
+  if (score >= 75) return { label: 'Excellent',     color: '#34d399' }
+  if (score >= 60) return { label: 'Good',          color: '#60a5fa' }
+  if (score >= 45) return { label: 'Average',       color: '#a78bfa' }
+  if (score >= 28) return { label: 'Below Average', color: '#fb923c' }
+  return                  { label: 'Poor',           color: '#f87171' }
 }
 
 // ─── Arc Ring (SVG) ───────────────────────────────────────────────────────
@@ -135,37 +154,30 @@ function ArcRing({ score, color }) {
 // ─── Overall Score Card ───────────────────────────────────────────────────
 function OverallScoreCard({ latest, prev }) {
   const { score, breakdown } = computeScore(latest)
-  const { score: prevScore }  = computeScore(prev)
-  const status   = scoreStatus(score)
-  const delta    = prev ? score - prevScore : null
-  const elapsed  = weeksElapsed()
-  const remaining = Math.max(0, TOTAL_WEEKS - elapsed)
+  const { score: prevScore } = computeScore(prev)
+  const status = scoreStatus(score)
+  const delta  = prev ? score - prevScore : null
 
-  // Top 6 weighted KPIs for the breakdown bars
-  const top = breakdown.slice(0, 6)
+  // Show all KPIs, weakest first (most actionable)
+  const rows = breakdown
 
   return (
     <div
       className="col-span-2 sm:col-span-3 lg:col-span-4 bg-zinc-900 border border-zinc-800 rounded-xl p-5"
-      style={{ borderColor: status.color + '44' }}
+      style={{ borderColor: status.color + '33' }}
     >
       <div className="flex flex-col sm:flex-row gap-5 items-start">
 
-        {/* LEFT — arc + score + status */}
+        {/* LEFT — arc + score + label */}
         <div className="flex items-center gap-4 sm:flex-col sm:items-center sm:gap-2 shrink-0">
           <ArcRing score={score} color={status.color} />
           <div className="sm:text-center">
             <div className="font-bold text-base" style={{ color: status.color }}>{status.label}</div>
-            <div className="text-xs text-zinc-500 mt-0.5">
-              {delta !== null && (
-                <span className={delta >= 0 ? 'text-emerald-400' : 'text-rose-400'}>
-                  {delta >= 0 ? '+' : ''}{delta} pts &nbsp;
-                </span>
-              )}
-              Week {elapsed} of {TOTAL_WEEKS}
-            </div>
-            {remaining > 0 && (
-              <div className="text-xs text-zinc-600 mt-0.5">{remaining} wks to Fight Club</div>
+            <div className="text-xs text-zinc-500 mt-1">Health score · 42M</div>
+            {delta !== null && (
+              <div className={`text-xs font-medium mt-1 ${ delta >= 0 ? 'text-emerald-400' : 'text-rose-400' }`}>
+                {delta >= 0 ? '+' : ''}{delta} pts since last
+              </div>
             )}
           </div>
         </div>
@@ -173,41 +185,32 @@ function OverallScoreCard({ latest, prev }) {
         {/* DIVIDER */}
         <div className="hidden sm:block w-px bg-zinc-800 self-stretch" />
 
-        {/* RIGHT — KPI breakdown bars */}
+        {/* RIGHT — KPI breakdown, weakest first */}
         <div className="flex-1 w-full">
-          <div className="text-xs text-zinc-500 uppercase tracking-wide mb-3">What's driving your score</div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5">
-            {top.map(({ field, label, icon, progress, weight }) => {
-              const pct = Math.round(progress * 100)
-              const barColor =
-                pct >= 75 ? '#34d399' :
-                pct >= 40 ? '#60a5fa' :
-                pct >= 15 ? '#fb923c' : '#f87171'
-              const val = latest?.[field]
-              const tgt = KPI_LABEL[field]?.target
-              const unit = KPI_LABEL[field]?.unit ?? ''
-              return (
-                <div key={field}>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs text-zinc-400 flex items-center gap-1">
-                      <span>{icon}</span>{label}
-                      <span className="text-zinc-600">({weight}%)</span>
-                    </span>
-                    <span className="text-xs font-medium" style={{ color: barColor }}>{pct}%</span>
-                  </div>
-                  <div className="bg-zinc-800 rounded-full h-1.5 overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all duration-700"
-                      style={{ width: `${pct}%`, backgroundColor: barColor }}
-                    />
-                  </div>
-                  <div className="flex justify-between text-[10px] text-zinc-700 mt-0.5">
-                    <span>{val != null ? (typeof val === 'number' && val % 1 !== 0 ? val.toFixed(1) : val) : '—'}{unit}</span>
-                    <span>Goal: {tgt}{unit}</span>
-                  </div>
+          <div className="text-xs text-zinc-500 uppercase tracking-wide mb-3">How you measure up · weakest first</div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
+            {rows.map(({ field, label, icon, unit, kpiScore, weight, value, tier }) => (
+              <div key={field}>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs text-zinc-400 flex items-center gap-1">
+                    <span>{icon}</span>{label}
+                  </span>
+                  <span className="text-xs font-semibold" style={{ color: tier.color }}>
+                    {tier.label}
+                  </span>
                 </div>
-              )
-            })}
+                <div className="bg-zinc-800 rounded-full h-1.5 overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-700"
+                    style={{ width: `${kpiScore}%`, backgroundColor: tier.color }}
+                  />
+                </div>
+                <div className="flex justify-between text-[10px] text-zinc-700 mt-0.5">
+                  <span>{value != null ? (typeof value === 'number' && value % 1 !== 0 ? value.toFixed(1) : value) : '—'}{unit}</span>
+                  <span>{kpiScore}/100</span>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
