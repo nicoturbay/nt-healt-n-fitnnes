@@ -678,7 +678,7 @@ export default function Dashboard() {
       if (bodyData?.length > 0) setLatest(bodyData[0])
       if (bodyData?.length > 1) setPrev(bodyData[1])
 
-      const today = new Date().toISOString().slice(0, 10)
+      const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date())
       const { data: mealData } = await supabase
         .from('meal_logs')
         .select('*')
