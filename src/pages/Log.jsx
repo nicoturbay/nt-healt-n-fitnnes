@@ -168,7 +168,7 @@ function DailyMealTotals({ meals }) {
     <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-3 mb-3">
       <p className="text-xs text-zinc-500 uppercase tracking-wide mb-2">Daily Totals</p>
       <div className="grid grid-cols-4 gap-2">
-        {[['Cal', totals.cal, GOALS.cal, ''], ['Protein', totals.protein, GOALS.protein, 'g'], ['Carbs', totals.carbs, GOALS.carbs, 'g'], ['Fat', totals.fat, GOALS.fat, 'g']].map(([label, val, goal, unit]) => {
+        {[['Calories', totals.cal, GOALS.cal, ''], ['Protein', totals.protein, GOALS.protein, 'g'], ['Carbs', totals.carbs, GOALS.carbs, 'g'], ['Fat', totals.fat, GOALS.fat, 'g']].map(([label, val, goal, unit]) => {
           const pct = Math.min(100, Math.round((val / goal) * 100))
           const color = pct >= 90 ? '#34d399' : pct >= 60 ? '#60a5fa' : '#fb923c'
           return (
