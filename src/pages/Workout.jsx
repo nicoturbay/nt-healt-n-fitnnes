@@ -136,6 +136,20 @@ function LoggedExerciseCard({ exercise, sets }) {
         </div>
         {filled.length > 0 && <CheckCircle2 size={16} className="text-green-400 flex-shrink-0" />}
       </div>
+
+      <p className="text-gray-500 text-xs px-4 pt-3 leading-relaxed">{exercise.description}</p>
+
+      <div className={`mx-4 mt-3 rounded-xl aspect-[4/3] relative overflow-hidden ${meta.light} border border-gray-800`}>
+        {exercise.image ? (
+          <img src={exercise.image} alt={exercise.name} className="absolute inset-0 w-full h-full object-cover" />
+        ) : (
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <Dumbbell size={32} className={meta.text} />
+            <p className="text-xs text-gray-600 mt-2">Illustration coming soon</p>
+          </div>
+        )}
+      </div>
+
       <div className="px-4 py-4 flex-1">
         {filled.length > 0 ? (
           <div className="flex flex-wrap gap-2">
