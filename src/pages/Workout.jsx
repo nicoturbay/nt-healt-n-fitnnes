@@ -182,12 +182,14 @@ export default function Workout() {
   const [recentLogs, setRecentLogs] = useState([])
 
   useEffect(() => {
-    supabase
-      .from('workout_logs')
-      .select('*')
-      .order('id', { ascending: false })
-      .limit(10)
-      .then(({ data }) => { if (data) setRecentLogs(data) })
+    const URL = 'https://gjusyswosfbrgngwjvbx.supabase.co'
+    const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdqdXN5c3dvc2ZicmduZ3dqdmJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQwNDM4MTAsImV4cCI6MjA5OTYxOTgxMH0.fW0Bocfsod-qjEw5n2Kx4E_IIputn38nCWuhyWFcOfw'
+    fetch(`${URL}/rest/v1/workout_logs?order=id.desc&limit=10`, {
+      headers: { apikey: KEY, Authorization: `Bearer ${KEY}` }
+    })
+      .then(r => r.json())
+      .then(data => { if (Array.isArray(data)) setRecentLogs(data) })
+      .catch(console.error)
   }, [sessionComplete])
 
   const handleExerciseChange = useCallback((id, name, sets) => {
