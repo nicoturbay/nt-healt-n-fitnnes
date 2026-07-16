@@ -294,14 +294,69 @@ export default function Workout() {
     setSaving(false)
   }
 
+  const navControls = (
+    <div className="flex items-center gap-1 flex-shrink-0">
+      <button
+        onClick={() => navigate(-1)}
+        className="w-9 h-9 rounded-xl bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+        title="Previous workout"
+      >
+        <ChevronLeft size={18} />
+      </button>
+      {!isToday && (
+        <button
+          onClick={() => setOffset(0)}
+          className="px-3 h-9 rounded-xl bg-green-500/20 hover:bg-green-500/30 text-xs text-green-400 hover:text-green-300 font-semibold transition-colors"
+        >
+          Today
+        </button>
+      )}
+      <button
+        onClick={() => navigate(1)}
+        className="w-9 h-9 rounded-xl bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+        title="Next workout"
+      >
+        <ChevronRight size={18} />
+      </button>
+      <div className="relative">
+        <button
+          onClick={() => dateInputRef.current?.showPicker()}
+          className="w-9 h-9 rounded-xl bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+          title="Pick a date"
+        >
+          <Calendar size={16} />
+        </button>
+        <input
+          ref={dateInputRef}
+          type="date"
+          value={selectedDateStr}
+          onChange={e => e.target.value && jumpToDate(e.target.value)}
+          className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+          tabIndex={-1}
+        />
+      </div>
+    </div>
+  )
+
   if (!workoutKey && !workout) {
     return (
-      <div className="space-y-4">
-        <h1 className="text-2xl font-bold">Workout</h1>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl flex flex-col items-center py-10 text-center">
+      <div className="space-y-5">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-800 text-gray-400">
+              {dayLabel}
+            </span>
+            <h1 className="text-2xl font-bold mt-2">Rest Day</h1>
+            <p className="text-gray-500 text-sm">
+              {selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+            </p>
+          </div>
+          {navControls}
+        </div>
+        <div className="bg-zinc-900 border border-zinc-800 rounded-xl flex flex-col items-center py-12 text-center">
           <Dumbbell size={36} className="text-zinc-700 mb-3" />
           <p className="font-semibold text-base">Rest day</p>
-          <p className="text-zinc-500 text-sm mt-1">Next session: use the arrows to navigate</p>
+          <p className="text-zinc-500 text-sm mt-1">Use the arrows or calendar to find a workout day</p>
         </div>
       </div>
     )
@@ -324,47 +379,7 @@ export default function Workout() {
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-1 flex-shrink-0">
-          <button
-            onClick={() => navigate(-1)}
-            className="w-9 h-9 rounded-xl bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
-            title="Previous workout"
-          >
-            <ChevronLeft size={18} />
-          </button>
-          {!isToday && (
-            <button
-              onClick={() => setOffset(0)}
-              className="px-3 h-9 rounded-xl bg-gray-800 hover:bg-gray-700 text-xs text-gray-400 hover:text-white transition-colors"
-            >
-              Today
-            </button>
-          )}
-          <button
-            onClick={() => navigate(1)}
-            className="w-9 h-9 rounded-xl bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
-            title="Next workout"
-          >
-            <ChevronRight size={18} />
-          </button>
-          <div className="relative">
-            <button
-              onClick={() => dateInputRef.current?.showPicker()}
-              className="w-9 h-9 rounded-xl bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
-              title="Pick a date"
-            >
-              <Calendar size={16} />
-            </button>
-            <input
-              ref={dateInputRef}
-              type="date"
-              value={selectedDateStr}
-              onChange={e => e.target.value && jumpToDate(e.target.value)}
-              className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
-              tabIndex={-1}
-            />
-          </div>
-        </div>
+        {navControls}
       </div>
 
       {workoutPlan.note && (
