@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { today, dateToET, getDayOfWeekET } from '../utils/date'
@@ -179,6 +179,16 @@ export default function Workout() {
   const [exerciseData, setExerciseData] = useState({})
   const [saving, setSaving] = useState(false)
   const [sessionComplete, setSessionComplete] = useState(false)
+  const [recentLogs, setRecentLogs] = useState([])
+
+  useEffect(() => {
+    supabase
+      .from('workout_logs')
+      .select('*')
+      .order('id', { ascending: false })
+      .limit(10)
+      .then(({ data }) => { if (data) setRecentLogs(data) })
+  }, [sessionComplete])
 
   const handleExerciseChange = useCallback((id, name, sets) => {
     setExerciseData(prev => ({ ...prev, [id]: { name, sets } }))
@@ -315,6 +325,45 @@ export default function Workout() {
           : 'Fill in at least one exercise to log'
         }
       </button>
+
+      {/* Recent workout history */}
+      {recentLogs.length > 0 && (
+        <div className="space-y-3 pt-2">
+          <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wide">Recent Sessions</h2>
+          {recentLogs.map(log => (
+            <div key={log.id} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-semibold text-white text-sm">{log.workout_name}</p>
+                  <p className="text-zinc-500 text-xs mt-0.5">
+                    {new Date(log.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                  </p>
+                </div>
+                <CheckCircle2 size={18} className="text-green-400 flex-shrink-0" />
+              </div>
+              <div className="space-y-2">
+                {Object.entries(log.exercises || {}).map(([exId, sets]) => {
+                  const filled = sets.filter(s => s.reps)
+                  if (!filled.length) return null
+                  const exName = exId.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+                  return (
+                    <div key={exId}>
+                      <p className="text-xs text-zinc-400 mb-1">{exName}</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {filled.map((s, i) => (
+                          <span key={i} className="text-xs bg-zinc-800 text-zinc-300 px-2 py-0.5 rounded-full">
+                            {s.reps} reps{s.weight ? ` @ ${s.weight} lb` : ''}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
