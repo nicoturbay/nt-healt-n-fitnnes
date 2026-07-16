@@ -173,6 +173,7 @@ function DailyMealTotals({ meals }) {
           const color = pct >= 90 ? '#34d399' : pct >= 60 ? '#60a5fa' : '#fb923c'
           return (
             <div key={label} className="text-center">
+              <p className="text-xs text-zinc-400 mb-1 font-medium">{label}</p>
               <p className="text-sm font-bold text-white">{Math.round(val)}{unit}</p>
               <p className="text-xs text-zinc-600">/{goal}{unit}</p>
               <div className="bg-zinc-800 rounded-full h-1 mt-1 overflow-hidden">
