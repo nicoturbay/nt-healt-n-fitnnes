@@ -1,9 +1,9 @@
-import { useState, useCallback, useMemo, useEffect } from 'react'
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { today, dateToET, getDayOfWeekET } from '../utils/date'
 import { DEFAULT_WORKOUT_PLAN, CATEGORY_META } from '../data/workoutPlan'
-import { CheckCircle2, Plus, Minus, Dumbbell, ChevronLeft, ChevronRight, Pencil } from 'lucide-react'
+import { CheckCircle2, Plus, Minus, Dumbbell, ChevronLeft, ChevronRight, Pencil, Calendar } from 'lucide-react'
 
 // ExerciseCard — input only, no log button
 function ExerciseCard({ exercise, onChange, completed, initialSets }) {
@@ -188,6 +188,8 @@ export default function Workout() {
   const [workoutPlan] = useLocalStorage('workoutPlan', DEFAULT_WORKOUT_PLAN)
   const todayStr = today()
 
+  const dateInputRef = useRef(null)
+
   const [offset, setOffset] = useState(() => {
     const dow = getDayOfWeekET()
     if (workoutPlan.schedule?.[dow]) return 0
@@ -216,6 +218,14 @@ export default function Workout() {
       return prev
     })
     // useEffect on selectedDateStr handles state reset
+  }
+
+  const jumpToDate = (dateStr) => {
+    // Compute offset from today in ET
+    const base = new Date(today() + 'T12:00:00')
+    const picked = new Date(dateStr + 'T12:00:00')
+    const diff = Math.round((picked - base) / 86400000)
+    setOffset(diff)
   }
 
   const [exerciseData, setExerciseData] = useState({})
@@ -337,6 +347,23 @@ export default function Workout() {
           >
             <ChevronRight size={18} />
           </button>
+          <div className="relative">
+            <button
+              onClick={() => dateInputRef.current?.showPicker()}
+              className="w-9 h-9 rounded-xl bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+              title="Pick a date"
+            >
+              <Calendar size={16} />
+            </button>
+            <input
+              ref={dateInputRef}
+              type="date"
+              value={selectedDateStr}
+              onChange={e => e.target.value && jumpToDate(e.target.value)}
+              className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+              tabIndex={-1}
+            />
+          </div>
         </div>
       </div>
 
