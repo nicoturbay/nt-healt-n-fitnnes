@@ -23,7 +23,7 @@ export const DEFAULT_WORKOUT_PLAN = {
   name: 'Full Body 3x — Phase 1',
   note: 'Phase 1: 3 days/week. Focus on form first, progressive overload second. Scale to 4 days after 4–6 weeks.',
   // 0=Sun 1=Mon 2=Tue 3=Wed 4=Thu 5=Fri 6=Sat
-  schedule: { 0: null, 1: 'dayA', 2: 'dayA', 3: 'dayB', 4: null, 5: null, 6: null },
+  schedule: { 0: null, 1: 'dayA', 2: null, 3: 'dayA', 4: null, 5: 'dayB', 6: null },
   workouts: {
     dayA: {
       name: 'Day A — Full Body',
