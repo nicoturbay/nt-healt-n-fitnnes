@@ -155,37 +155,42 @@ function ExerciseCard({ exercise, onChange, completed, initialSets, swappedExerc
 
       {/* Swipeable 2-image gallery: Form photo + Muscle map */}
       {displayExercise.image ? (
-        <div className="mx-4 mt-3 rounded-xl overflow-hidden relative h-48">
-          {/* Sliding container */}
+        <div className="mx-4 mt-3 rounded-xl overflow-hidden relative" style={{ height: '192px' }}>
+          {/* Slide 0 — Form photo */}
           <div
-            className={`flex h-full transition-transform duration-300 ${gallerySlide === 0 ? 'translate-x-0' : '-translate-x-full'}`}
-            style={{ width: '200%' }}
+            className="absolute inset-0 transition-transform duration-300"
+            style={{ transform: gallerySlide === 0 ? 'translateX(0%)' : 'translateX(-100%)' }}
           >
-            {/* Slide 0 — Form photo */}
-            <div className="relative h-full flex-shrink-0" style={{ width: '50%' }}>
+            <img
+              src={displayExercise.image}
+              alt={`${displayExercise.name} form`}
+              className="w-full h-full object-cover"
+            />
+            <span className="absolute bottom-2 left-2 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-black/60 text-white">Form</span>
+          </div>
+          {/* Slide 1 — Muscle map */}
+          <div
+            className="absolute inset-0 transition-transform duration-300"
+            style={{ transform: gallerySlide === 0 ? 'translateX(100%)' : 'translateX(0%)' }}
+          >
+            {displayExercise.muscleImage ? (
               <img
-                src={displayExercise.image}
-                alt={`${displayExercise.name} form`}
+                src={displayExercise.muscleImage}
+                alt={`${displayExercise.name} muscles`}
                 className="w-full h-full object-cover"
               />
-              <span className="absolute bottom-2 left-2 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-black/60 text-white">Form</span>
-            </div>
-            {/* Slide 1 — Muscle map */}
-            <div className="relative h-full flex-shrink-0" style={{ width: '50%' }}>
-              {displayExercise.muscleImage ? (
-                <img
-                  src={displayExercise.muscleImage}
-                  alt={`${displayExercise.name} muscles`}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className={`w-full h-full flex flex-col items-center justify-center ${meta.light}`}>
-                  <Dumbbell size={28} className={meta.text} />
-                  <p className="text-xs text-gray-600 mt-2">Muscle map coming soon</p>
-                </div>
-              )}
-              <span className="absolute bottom-2 left-2 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-black/60 text-white">Muscles</span>
-            </div>
+            ) : (
+              <div className={`w-full h-full flex flex-col items-center justify-center ${meta.light}`}>
+                <Dumbbell size={28} className={meta.text} />
+                <p className="text-xs text-gray-600 mt-2">Muscle map coming soon</p>
+              </div>
+            )}
+            <span className="absolute bottom-2 left-2 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-black/60 text-white">Muscles</span>
+          </div>
+          {/* Invisible full-width tap zones */}
+          <div className="absolute inset-0 flex">
+            <div className="flex-1" onClick={() => gallerySlide === 1 && setGallerySlide(0)} />
+            <div className="flex-1" onClick={() => gallerySlide === 0 && setGallerySlide(1)} />
           </div>
           {/* Left chevron */}
           {gallerySlide === 1 && (
