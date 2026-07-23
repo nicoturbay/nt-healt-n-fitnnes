@@ -88,7 +88,7 @@ export default function Layout() {
               to={to}
               end={to === '/'}
               className={({ isActive }) =>
-                `flex-1 flex flex-col items-center py-4 gap-1 transition-colors ${
+                `flex-1 flex flex-col items-center pt-4 pb-6 gap-1.5 transition-colors ${
                   isActive ? 'text-green-400' : 'text-gray-600'
                 }`
               }
