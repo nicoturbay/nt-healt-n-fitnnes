@@ -185,7 +185,14 @@ function formatDayLabel(offset, date) {
 }
 
 export default function Workout() {
-  const [workoutPlan] = useLocalStorage('workoutPlan', DEFAULT_WORKOUT_PLAN)
+  const [workoutPlan, setWorkoutPlan] = useLocalStorage('workoutPlan', DEFAULT_WORKOUT_PLAN)
+
+  // Cache-bust: if stored plan is missing image fields, reload from updated default
+  useEffect(() => {
+    const allExercises = Object.values(workoutPlan.workouts || {}).flatMap(w => w.exercises || [])
+    const missingImages = allExercises.some(ex => !ex.image)
+    if (missingImages) setWorkoutPlan(DEFAULT_WORKOUT_PLAN)
+  }, [])
   const todayStr = today()
 
   const dateInputRef = useRef(null)
