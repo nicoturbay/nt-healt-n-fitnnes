@@ -3,11 +3,68 @@ import { supabase } from '../lib/supabase'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import { today, dateToET, getDayOfWeekET } from '../utils/date'
 import { DEFAULT_WORKOUT_PLAN, CATEGORY_META } from '../data/workoutPlan'
-import { CheckCircle2, Plus, Minus, Dumbbell, ChevronLeft, ChevronRight, Pencil, Calendar } from 'lucide-react'
+import { CheckCircle2, Plus, Minus, Dumbbell, ChevronLeft, ChevronRight, Pencil, Calendar, ArrowLeftRight } from 'lucide-react'
+
+// SwapPanel — inline alternative picker
+function SwapPanel({ exercise, currentId, onSelect, onClose }) {
+  const meta = CATEGORY_META[exercise.category] || CATEGORY_META.chest
+  const alts = exercise.alternatives || []
+  const isOriginal = currentId === exercise.id
+
+  return (
+    <div className="mt-2 rounded-xl border border-gray-700 bg-gray-950 overflow-hidden">
+      <div className="px-3 py-2 border-b border-gray-800 flex items-center justify-between">
+        <span className="text-xs font-semibold text-gray-400">Swap Exercise</span>
+        <button onClick={onClose} className="text-gray-600 hover:text-gray-300 text-xs transition-colors">Done</button>
+      </div>
+      <div className="p-2 space-y-1">
+        {/* Original exercise option */}
+        <button
+          onClick={() => onSelect(null)}
+          className={`w-full text-left px-3 py-2 rounded-lg flex items-center justify-between transition-colors ${
+            isOriginal ? `${meta.light} ${meta.text}` : 'hover:bg-gray-800 text-gray-300'
+          }`}
+        >
+          <div>
+            <p className="text-xs font-semibold">{exercise.name}</p>
+            <p className="text-[10px] text-gray-500 mt-0.5">Original · {exercise.startingWeight}</p>
+          </div>
+          {isOriginal && <CheckCircle2 size={14} className={meta.text} />}
+        </button>
+
+        {alts.map(alt => {
+          const isSelected = currentId === alt.id
+          return (
+            <button
+              key={alt.id}
+              onClick={() => onSelect(alt)}
+              className={`w-full text-left px-3 py-2 rounded-lg flex items-center justify-between transition-colors ${
+                isSelected ? `${meta.light} ${meta.text}` : 'hover:bg-gray-800 text-gray-300'
+              }`}
+            >
+              <div>
+                <p className="text-xs font-semibold">{alt.name}</p>
+                <p className="text-[10px] text-gray-500 mt-0.5">{alt.startingWeight}</p>
+              </div>
+              {isSelected && <CheckCircle2 size={14} className={meta.text} />}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
 
 // ExerciseCard — input only, no log button
-function ExerciseCard({ exercise, onChange, completed, initialSets }) {
+function ExerciseCard({ exercise, onChange, completed, initialSets, swappedExercise, onSwapOpen, showSwap, onSwapClose, onSwapSelect }) {
+  const displayExercise = swappedExercise
+    ? { ...exercise, ...swappedExercise, id: exercise.id, alternatives: exercise.alternatives, category: exercise.category, muscleGroup: exercise.muscleGroup }
+    : exercise
+
   const meta = CATEGORY_META[exercise.category] || CATEGORY_META.chest
+  const isSwapped = !!swappedExercise
+  const currentSwapId = swappedExercise ? swappedExercise.id : exercise.id
+
   const [sets, setSets] = useState(
     initialSets?.length
       ? initialSets
@@ -17,20 +74,20 @@ function ExerciseCard({ exercise, onChange, completed, initialSets }) {
   const updateSet = (i, field, val) => {
     const next = sets.map((s, idx) => idx === i ? { ...s, [field]: val } : s)
     setSets(next)
-    onChange(exercise.id, exercise.name, next)
+    onChange(exercise.id, displayExercise.name, next)
   }
 
   const addSet = () => {
     const next = [...sets, { reps: '', weight: '' }]
     setSets(next)
-    onChange(exercise.id, exercise.name, next)
+    onChange(exercise.id, displayExercise.name, next)
   }
 
   const removeSet = () => {
     if (sets.length <= 1) return
     const next = sets.slice(0, -1)
     setSets(next)
-    onChange(exercise.id, exercise.name, next)
+    onChange(exercise.id, displayExercise.name, next)
   }
 
   const filledSets = sets.filter(s => s.reps).length
@@ -45,20 +102,54 @@ function ExerciseCard({ exercise, onChange, completed, initialSets }) {
           {exercise.category.charAt(0).toUpperCase()}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-sm leading-tight truncate">{exercise.name}</p>
+          <div className="flex items-center gap-1.5 min-w-0">
+            <p className="font-semibold text-sm leading-tight truncate">{displayExercise.name}</p>
+            {isSwapped && (
+              <span className="flex-shrink-0 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-yellow-500/20 text-yellow-400 leading-none">SWAP</span>
+            )}
+          </div>
           <p className={`text-xs mt-0.5 ${meta.text}`}>{meta.label}</p>
         </div>
-        {completed && <CheckCircle2 size={16} className="text-green-400 flex-shrink-0" />}
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          {exercise.alternatives?.length > 0 && (
+            <button
+              onClick={showSwap ? onSwapClose : onSwapOpen}
+              className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${
+                showSwap
+                  ? `${meta.color} text-black`
+                  : isSwapped
+                  ? 'bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30'
+                  : 'bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700'
+              }`}
+              title="Swap exercise"
+            >
+              <ArrowLeftRight size={13} />
+            </button>
+          )}
+          {completed && <CheckCircle2 size={16} className="text-green-400" />}
+        </div>
       </div>
 
-      <p className="text-gray-500 text-xs px-4 pt-3 leading-relaxed">{exercise.description}</p>
+      {/* Swap panel (inline, above description) */}
+      {showSwap && (
+        <div className="px-4 pt-3">
+          <SwapPanel
+            exercise={exercise}
+            currentId={currentSwapId}
+            onSelect={onSwapSelect}
+            onClose={onSwapClose}
+          />
+        </div>
+      )}
+
+      <p className="text-gray-500 text-xs px-4 pt-3 leading-relaxed">{displayExercise.description}</p>
 
       {/* padding-top 75% = 4:3 ratio — works on iOS Safari unlike aspect-ratio CSS */}
       <div className={`mx-4 mt-3 rounded-xl relative overflow-hidden ${meta.light} border border-gray-800`} style={{ paddingTop: '75%' }}>
-        {exercise.image ? (
+        {displayExercise.image ? (
           <img
-            src={exercise.image}
-            alt={exercise.name}
+            src={displayExercise.image}
+            alt={displayExercise.name}
             className="absolute inset-0 w-full h-full object-cover"
           />
         ) : (
@@ -187,14 +278,15 @@ function formatDayLabel(offset, date) {
 export default function Workout() {
   const [workoutPlan, setWorkoutPlan] = useLocalStorage('workoutPlan', DEFAULT_WORKOUT_PLAN)
 
-  // Cache-bust: if stored plan is missing image fields, reload from updated default
+  // Cache-bust: if stored plan is missing alternatives or dayC, reload from updated default
   useEffect(() => {
     const allExercises = Object.values(workoutPlan.workouts || {}).flatMap(w => w.exercises || [])
-    const missingImages = allExercises.some(ex => !ex.image)
-    if (missingImages) setWorkoutPlan(DEFAULT_WORKOUT_PLAN)
+    const missingAlternatives = allExercises.some(ex => !ex.alternatives)
+    const missingDayC = !workoutPlan.workouts?.dayC
+    if (missingAlternatives || missingDayC) setWorkoutPlan(DEFAULT_WORKOUT_PLAN)
   }, [])
-  const todayStr = today()
 
+  const todayStr = today()
   const dateInputRef = useRef(null)
 
   const [offset, setOffset] = useState(() => {
@@ -224,11 +316,9 @@ export default function Workout() {
       }
       return prev
     })
-    // useEffect on selectedDateStr handles state reset
   }
 
   const jumpToDate = (dateStr) => {
-    // Compute offset from today in ET
     const base = new Date(today() + 'T12:00:00')
     const picked = new Date(dateStr + 'T12:00:00')
     const diff = Math.round((picked - base) / 86400000)
@@ -241,11 +331,19 @@ export default function Workout() {
   const [loadingLog, setLoadingLog] = useState(false)
   const [editMode, setEditMode] = useState(false)
 
-  // Fetch any existing log whenever the selected date changes
+  // Swap state: { [exerciseId]: alternativeObject | null }
+  // null means "reverted to original", key absence means never swapped
+  const [swaps, setSwaps] = useState({})
+  // Which exercise has the swap panel open right now
+  const [openSwapId, setOpenSwapId] = useState(null)
+
+  // Reset swaps when the date/workout changes
   useEffect(() => {
     setExistingLog(null)
     setEditMode(false)
     setExerciseData({})
+    setSwaps({})
+    setOpenSwapId(null)
     setLoadingLog(true)
     supabase
       .from('workout_logs')
@@ -260,6 +358,11 @@ export default function Workout() {
 
   const handleExerciseChange = useCallback((id, name, sets) => {
     setExerciseData(prev => ({ ...prev, [id]: { name, sets } }))
+  }, [])
+
+  const handleSwapSelect = useCallback((exerciseId, alt) => {
+    setSwaps(prev => ({ ...prev, [exerciseId]: alt || null }))
+    setOpenSwapId(null)
   }, [])
 
   const filledCount = Object.values(exerciseData).filter(
@@ -426,7 +529,7 @@ export default function Workout() {
         </>
       ) : (
         <>
-          {/* Input exercise cards */}
+          {/* Input exercise cards with swap support */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {workout.exercises.map(exercise => (
               <ExerciseCard
@@ -435,6 +538,11 @@ export default function Workout() {
                 onChange={handleExerciseChange}
                 completed={exerciseData[exercise.id]?.sets?.every(s => s.reps)}
                 initialSets={editMode ? existingLog?.exercises?.[exercise.id] : null}
+                swappedExercise={swaps[exercise.id] || null}
+                onSwapOpen={() => setOpenSwapId(exercise.id)}
+                showSwap={openSwapId === exercise.id}
+                onSwapClose={() => setOpenSwapId(null)}
+                onSwapSelect={(alt) => handleSwapSelect(exercise.id, alt)}
               />
             ))}
           </div>
