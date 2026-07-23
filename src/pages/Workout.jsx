@@ -111,6 +111,13 @@ function ExerciseCard({ exercise, onChange, completed, initialSets, swappedExerc
           <p className={`text-xs mt-0.5 ${meta.text}`}>{meta.label}</p>
         </div>
         <div className="flex items-center gap-1.5 flex-shrink-0">
+          {displayExercise.image && (
+            <img
+              src={displayExercise.image}
+              alt={displayExercise.name}
+              className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
+            />
+          )}
           {exercise.alternatives?.length > 0 && (
             <button
               onClick={showSwap ? onSwapClose : onSwapOpen}
