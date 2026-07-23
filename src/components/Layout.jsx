@@ -88,13 +88,13 @@ export default function Layout() {
               to={to}
               end={to === '/'}
               className={({ isActive }) =>
-                `flex-1 flex flex-col items-center py-2.5 gap-0.5 transition-colors ${
+                `flex-1 flex flex-col items-center py-4 gap-1 transition-colors ${
                   isActive ? 'text-green-400' : 'text-gray-600'
                 }`
               }
             >
-              <Icon size={20} />
-              <span className="text-[10px] font-medium">{label}</span>
+              <Icon size={26} />
+              <span className="text-[11px] font-medium">{label}</span>
             </NavLink>
           ))}
         </div>
