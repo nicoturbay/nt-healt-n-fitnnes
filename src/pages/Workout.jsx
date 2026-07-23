@@ -66,6 +66,7 @@ function ExerciseCard({ exercise, onChange, completed, initialSets, swappedExerc
   const currentSwapId = swappedExercise ? swappedExercise.id : exercise.id
 
   const [gallerySlide, setGallerySlide] = useState(0)
+  const touchStartX = useRef(null)
 
   const [sets, setSets] = useState(
     initialSets?.length
@@ -153,71 +154,83 @@ function ExerciseCard({ exercise, onChange, completed, initialSets, swappedExerc
 
       <p className="text-gray-500 text-xs px-4 pt-3 leading-relaxed">{displayExercise.description}</p>
 
-      {/* Swipeable 2-image gallery: Form photo + Muscle map */}
-      {displayExercise.image ? (
-        <div className="mx-4 mt-3 rounded-xl overflow-hidden relative" style={{ height: '192px' }}>
-          {/* Slide 0 — Form photo */}
-          <div
-            className="absolute inset-0 transition-transform duration-300"
-            style={{ transform: gallerySlide === 0 ? 'translateX(0%)' : 'translateX(-100%)' }}
-          >
-            <img
-              src={displayExercise.image}
-              alt={`${displayExercise.name} form`}
-              className="w-full h-full object-cover"
-            />
-            <span className="absolute bottom-2 left-2 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-black/60 text-white">Form</span>
-          </div>
-          {/* Slide 1 — Muscle map */}
-          <div
-            className="absolute inset-0 transition-transform duration-300"
-            style={{ transform: gallerySlide === 0 ? 'translateX(100%)' : 'translateX(0%)' }}
-          >
-            {displayExercise.muscleImage ? (
-              <img
-                src={displayExercise.muscleImage}
-                alt={`${displayExercise.name} muscles`}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className={`w-full h-full flex flex-col items-center justify-center ${meta.light}`}>
-                <Dumbbell size={28} className={meta.text} />
-                <p className="text-xs text-gray-600 mt-2">Muscle map coming soon</p>
+      {/* Swipeable 2-image gallery — always uses base exercise images, not swapped */}
+      {exercise.image ? (
+        <div
+          className="mx-4 mt-3 rounded-xl overflow-hidden relative bg-black"
+          onTouchStart={e => { touchStartX.current = e.touches[0].clientX }}
+          onTouchEnd={e => {
+            if (touchStartX.current === null) return
+            const diff = touchStartX.current - e.changedTouches[0].clientX
+            if (diff > 40) setGallerySlide(1)
+            else if (diff < -40) setGallerySlide(0)
+            touchStartX.current = null
+          }}
+        >
+          {/* Outer clip — one slide width */}
+          <div style={{ overflow: 'hidden' }}>
+            {/* Inner strip — slides left/right */}
+            <div
+              style={{
+                display: 'flex',
+                width: '200%',
+                transform: gallerySlide === 0 ? 'translateX(0)' : 'translateX(-50%)',
+                transition: 'transform 0.3s ease',
+              }}
+            >
+              {/* Slide 0 — Form */}
+              <div style={{ width: '50%', position: 'relative' }}>
+                <img
+                  src={exercise.image}
+                  alt={`${exercise.name} form`}
+                  style={{ width: '100%', height: 'auto', display: 'block' }}
+                />
+                <span className="absolute bottom-2 left-2 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-black/60 text-white">Form</span>
               </div>
-            )}
-            <span className="absolute bottom-2 left-2 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-black/60 text-white">Muscles</span>
-          </div>
-          {/* Invisible full-width tap zones */}
-          <div className="absolute inset-0 flex">
-            <div className="flex-1" onClick={() => gallerySlide === 1 && setGallerySlide(0)} />
-            <div className="flex-1" onClick={() => gallerySlide === 0 && setGallerySlide(1)} />
+              {/* Slide 1 — Muscles */}
+              <div style={{ width: '50%', position: 'relative' }}>
+                {exercise.muscleImage ? (
+                  <img
+                    src={exercise.muscleImage}
+                    alt={`${exercise.name} muscles`}
+                    style={{ width: '100%', height: 'auto', display: 'block' }}
+                  />
+                ) : (
+                  <div className={`flex flex-col items-center justify-center py-16 ${meta.light}`}>
+                    <Dumbbell size={28} className={meta.text} />
+                    <p className="text-xs text-gray-600 mt-2">Coming soon</p>
+                  </div>
+                )}
+                <span className="absolute bottom-2 left-2 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-black/60 text-white">Muscles</span>
+              </div>
+            </div>
           </div>
           {/* Left chevron */}
           {gallerySlide === 1 && (
             <button
               onClick={() => setGallerySlide(0)}
-              className="absolute left-1.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/50 flex items-center justify-center text-white hover:bg-black/70 transition-colors"
+              className="absolute left-1.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 flex items-center justify-center text-white"
             >
-              <ChevronLeft size={16} />
+              <ChevronLeft size={18} />
             </button>
           )}
           {/* Right chevron */}
           {gallerySlide === 0 && (
             <button
               onClick={() => setGallerySlide(1)}
-              className="absolute right-1.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/50 flex items-center justify-center text-white hover:bg-black/70 transition-colors"
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 flex items-center justify-center text-white"
             >
-              <ChevronRight size={16} />
+              <ChevronRight size={18} />
             </button>
           )}
-          {/* Dot indicators */}
-          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
+          {/* Dots */}
+          <div className="absolute bottom-2 right-2 flex gap-1.5">
             <button onClick={() => setGallerySlide(0)} className={`w-1.5 h-1.5 rounded-full transition-colors ${gallerySlide === 0 ? 'bg-white' : 'bg-white/40'}`} />
             <button onClick={() => setGallerySlide(1)} className={`w-1.5 h-1.5 rounded-full transition-colors ${gallerySlide === 1 ? 'bg-white' : 'bg-white/40'}`} />
           </div>
         </div>
       ) : (
-        <div className={`mx-4 mt-3 rounded-xl flex flex-col items-center justify-center h-48 ${meta.light} border border-gray-800`}>
+        <div className={`mx-4 mt-3 rounded-xl flex flex-col items-center justify-center py-12 ${meta.light} border border-gray-800`}>
           <Dumbbell size={32} className={meta.text} />
           <p className="text-xs text-gray-600 mt-2">Illustration coming soon</p>
         </div>
