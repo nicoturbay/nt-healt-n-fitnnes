@@ -53,8 +53,8 @@ function ExerciseCard({ exercise, onChange, completed, initialSets }) {
 
       <p className="text-gray-500 text-xs px-4 pt-3 leading-relaxed">{exercise.description}</p>
 
-      {/* aspect-[4/3] keeps ratio consistent at any card width */}
-      <div className={`mx-4 mt-3 rounded-xl aspect-[4/3] relative overflow-hidden ${meta.light} border border-gray-800`}>
+      {/* padding-top 75% = 4:3 ratio — works on iOS Safari unlike aspect-ratio CSS */}
+      <div className={`mx-4 mt-3 rounded-xl relative overflow-hidden ${meta.light} border border-gray-800`} style={{ paddingTop: '75%' }}>
         {exercise.image ? (
           <img
             src={exercise.image}
@@ -139,7 +139,7 @@ function LoggedExerciseCard({ exercise, sets }) {
 
       <p className="text-gray-500 text-xs px-4 pt-3 leading-relaxed">{exercise.description}</p>
 
-      <div className={`mx-4 mt-3 rounded-xl aspect-[4/3] relative overflow-hidden ${meta.light} border border-gray-800`}>
+      <div className={`mx-4 mt-3 rounded-xl relative overflow-hidden ${meta.light} border border-gray-800`} style={{ paddingTop: '75%' }}>
         {exercise.image ? (
           <img src={exercise.image} alt={exercise.name} className="absolute inset-0 w-full h-full object-cover" />
         ) : (
