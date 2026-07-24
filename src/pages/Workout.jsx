@@ -154,8 +154,8 @@ function ExerciseCard({ exercise, onChange, completed, initialSets, swappedExerc
 
       <p className="text-gray-500 text-xs px-4 pt-3 leading-relaxed">{displayExercise.description}</p>
 
-      {/* Swipeable 2-image gallery — always uses base exercise images, not swapped */}
-      {exercise.image ? (
+      {/* Swipeable 2-image gallery — uses swapped exercise images when active */}
+      {displayExercise.image ? (
         <div
           className="mx-4 mt-3 rounded-xl overflow-hidden relative bg-black"
           onTouchStart={e => { touchStartX.current = e.touches[0].clientX }}
@@ -181,18 +181,18 @@ function ExerciseCard({ exercise, onChange, completed, initialSets, swappedExerc
               {/* Slide 0 — Form */}
               <div style={{ width: '50%', position: 'relative' }}>
                 <img
-                  src={exercise.image}
-                  alt={`${exercise.name} form`}
+                  src={displayExercise.image}
+                  alt={`${displayExercise.name} form`}
                   style={{ width: '100%', height: 'auto', display: 'block' }}
                 />
                 <span className="absolute bottom-2 left-2 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-black/60 text-white">Form</span>
               </div>
               {/* Slide 1 — Muscles */}
               <div style={{ width: '50%', position: 'relative' }}>
-                {exercise.muscleImage ? (
+                {displayExercise.muscleImage ? (
                   <img
-                    src={exercise.muscleImage}
-                    alt={`${exercise.name} muscles`}
+                    src={displayExercise.muscleImage}
+                    alt={`${displayExercise.name} muscles`}
                     style={{ width: '100%', height: 'auto', display: 'block' }}
                   />
                 ) : (
