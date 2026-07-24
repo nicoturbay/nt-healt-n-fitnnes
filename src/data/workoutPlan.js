@@ -45,9 +45,9 @@ export const DEFAULT_WORKOUT_PLAN = {
           startingWeight: '16kg KB',
           progressionNote: 'Move to 20kg when 12 reps feel easy for 2 sessions in a row.',
           alternatives: [
-            { id: 'reverse-lunge-alt', name: 'Reverse Lunge', startingWeight: '15lb DBs' },
-            { id: 'split-squat-alt', name: 'Split Squat (KB goblet)', startingWeight: '12kg KB' },
-            { id: 'step-up-alt', name: 'Step-Up', startingWeight: '15lb DBs' },
+            { id: 'reverse-lunge-alt', name: 'Reverse Lunge', startingWeight: '15lb DBs', image: '/exercises/reverse-lunge.jpg' },
+            { id: 'split-squat-alt', name: 'Split Squat (KB goblet)', startingWeight: '12kg KB', image: '/exercises/goblet-squat.jpg' },
+            { id: 'step-up-alt', name: 'Step-Up', startingWeight: '15lb DBs', image: '/exercises/dumbbell-lunge.jpg' },
           ],
         },
         {
@@ -63,9 +63,9 @@ export const DEFAULT_WORKOUT_PLAN = {
           startingWeight: '15lb DBs',
           progressionNote: 'Move to 20lb when you hit 10 clean reps.',
           alternatives: [
-            { id: 'floor-press-alt', name: 'DB Floor Press', startingWeight: '15lb DBs' },
-            { id: 'incline-press-alt', name: 'Incline DB Press', startingWeight: '15lb DBs' },
-            { id: 'band-pushup-alt', name: 'Banded Push-Up', startingWeight: 'Heavy band' },
+            { id: 'floor-press-alt', name: 'DB Floor Press', startingWeight: '15lb DBs', image: '/exercises/bench-press.jpg' },
+            { id: 'incline-press-alt', name: 'Incline DB Press', startingWeight: '15lb DBs', image: '/exercises/incline-db-press.jpg' },
+            { id: 'band-pushup-alt', name: 'Banded Push-Up', startingWeight: 'Heavy band', image: '/exercises/push-up.jpg' },
           ],
         },
         {
@@ -81,9 +81,9 @@ export const DEFAULT_WORKOUT_PLAN = {
           startingWeight: '20lb DBs or 16kg KB',
           progressionNote: '16kg KB gives more range of motion. Move to 20kg when 12 reps are easy.',
           alternatives: [
-            { id: 'single-leg-rdl-alt', name: 'Single-Leg RDL', startingWeight: '15lb DB' },
-            { id: 'kb-swing-rdl-alt', name: 'KB Swing (hinge focus)', startingWeight: '16kg KB' },
-            { id: 'good-morning-alt', name: 'Good Morning (band)', startingWeight: 'Heavy band' },
+            { id: 'single-leg-rdl-alt', name: 'Single-Leg RDL', startingWeight: '15lb DB', image: '/exercises/rdl.jpg' },
+            { id: 'kb-swing-rdl-alt', name: 'KB Swing (hinge focus)', startingWeight: '16kg KB', image: '/exercises/kb-swing.jpg' },
+            { id: 'good-morning-alt', name: 'Good Morning (band)', startingWeight: 'Heavy band', image: '/exercises/rdl.jpg' },
           ],
         },
         {
@@ -99,9 +99,9 @@ export const DEFAULT_WORKOUT_PLAN = {
           startingWeight: '20lb DB',
           progressionNote: 'Can substitute 16kg KB row when you outgrow 20lb.',
           alternatives: [
-            { id: 'kb-row-alt', name: 'Single-Arm KB Row', startingWeight: '16kg KB' },
-            { id: 'band-row-alt', name: 'Band Seated Row', startingWeight: 'Heavy band' },
-            { id: 'chest-supported-alt', name: 'Chest-Supported DB Row', startingWeight: '15lb DBs' },
+            { id: 'kb-row-alt', name: 'Single-Arm KB Row', startingWeight: '16kg KB', image: '/exercises/db-row.jpg' },
+            { id: 'band-row-alt', name: 'Band Seated Row', startingWeight: 'Heavy band', image: '/exercises/cable-rows.jpg' },
+            { id: 'chest-supported-alt', name: 'Chest-Supported DB Row', startingWeight: '15lb DBs', image: '/exercises/bent-over-row.jpg' },
           ],
         },
         {
@@ -117,9 +117,9 @@ export const DEFAULT_WORKOUT_PLAN = {
           startingWeight: '10lb DBs',
           progressionNote: 'Move to 15lb when 15 reps feel effortless.',
           alternatives: [
-            { id: 'band-lateral-alt', name: 'Band Lateral Raise', startingWeight: 'Light band' },
-            { id: 'cable-lateral-alt', name: 'Bent-Over Rear Delt Fly', startingWeight: '10lb DBs' },
-            { id: 'plate-raise-alt', name: 'Front Raise', startingWeight: '10lb DB' },
+            { id: 'band-lateral-alt', name: 'Band Lateral Raise', startingWeight: 'Light band', image: '/exercises/lateral-raises.jpg' },
+            { id: 'cable-lateral-alt', name: 'Bent-Over Rear Delt Fly', startingWeight: '10lb DBs', image: '/exercises/face-pulls.jpg' },
+            { id: 'plate-raise-alt', name: 'Front Raise', startingWeight: '10lb DB', image: '/exercises/lateral-raise.jpg' },
           ],
         },
         {
@@ -135,9 +135,9 @@ export const DEFAULT_WORKOUT_PLAN = {
           startingWeight: 'Heavy band',
           progressionNote: 'Move to extra-heavy band when 15 reps are easy.',
           alternatives: [
-            { id: 'overhead-ext-alt', name: 'Overhead Tricep Extension', startingWeight: '15lb DB' },
-            { id: 'diamond-pushup-alt', name: 'Diamond Push-Up', startingWeight: 'Bodyweight' },
-            { id: 'kb-skull-alt', name: 'KB Skull Crusher', startingWeight: '12kg KB' },
+            { id: 'overhead-ext-alt', name: 'Overhead Tricep Extension', startingWeight: '15lb DB', image: '/exercises/db-tricep-ext.jpg' },
+            { id: 'diamond-pushup-alt', name: 'Diamond Push-Up', startingWeight: 'Bodyweight', image: '/exercises/push-up.jpg' },
+            { id: 'kb-skull-alt', name: 'KB Skull Crusher', startingWeight: '12kg KB', image: '/exercises/skull-crushers.jpg' },
           ],
         },
         {
@@ -153,9 +153,9 @@ export const DEFAULT_WORKOUT_PLAN = {
           startingWeight: 'Bodyweight + sliders',
           progressionNote: 'Build to 45 seconds. Can add ankle weights for more resistance.',
           alternatives: [
-            { id: 'slider-pike-alt', name: 'Slider Pike', startingWeight: 'Bodyweight + sliders' },
-            { id: 'plank-hold-alt', name: 'Weighted Plank Hold', startingWeight: 'Bodyweight' },
-            { id: 'dead-bug-alt', name: 'Dead Bug', startingWeight: 'Bodyweight' },
+            { id: 'slider-pike-alt', name: 'Slider Pike', startingWeight: 'Bodyweight + sliders', image: '/exercises/plank.jpg' },
+            { id: 'plank-hold-alt', name: 'Weighted Plank Hold', startingWeight: 'Bodyweight', image: '/exercises/plank.jpg' },
+            { id: 'dead-bug-alt', name: 'Dead Bug', startingWeight: 'Bodyweight', image: '/exercises/plank.jpg' },
           ],
         },
         {
@@ -170,9 +170,9 @@ export const DEFAULT_WORKOUT_PLAN = {
           startingWeight: 'Weighted rope',
           progressionNote: 'Build to 15 min after 4 weeks.',
           alternatives: [
-            { id: 'jump-rope-intervals-alt', name: 'Jump Rope Tabata (20/10)', startingWeight: 'Weighted rope' },
-            { id: 'burpee-finisher-alt', name: 'Burpee Finisher (10 min)', startingWeight: 'Bodyweight' },
-            { id: 'jump-rope-steady-alt', name: 'Jump Rope Steady State', startingWeight: 'Weighted rope' },
+            { id: 'jump-rope-intervals-alt', name: 'Jump Rope Tabata (20/10)', startingWeight: 'Weighted rope', image: '/exercises/jump-rope.jpg' },
+            { id: 'burpee-finisher-alt', name: 'Burpee Finisher (10 min)', startingWeight: 'Bodyweight', image: '/exercises/jump-rope.jpg' },
+            { id: 'jump-rope-steady-alt', name: 'Jump Rope Steady State', startingWeight: 'Weighted rope', image: '/exercises/jump-rope.jpg' },
           ],
         },
       ],
@@ -197,9 +197,9 @@ export const DEFAULT_WORKOUT_PLAN = {
           startingWeight: '15lb DBs or 12kg KB goblet',
           progressionNote: 'Move to 20lb DBs or 16kg KB when form is solid.',
           alternatives: [
-            { id: 'goblet-squat-b-alt', name: 'Goblet Squat', startingWeight: '16kg KB' },
-            { id: 'lateral-lunge-alt', name: 'Lateral Lunge', startingWeight: '15lb DBs' },
-            { id: 'walking-lunge-alt', name: 'Walking Lunge', startingWeight: '10lb DBs' },
+            { id: 'goblet-squat-b-alt', name: 'Goblet Squat', startingWeight: '16kg KB', image: '/exercises/goblet-squat.jpg' },
+            { id: 'lateral-lunge-alt', name: 'Lateral Lunge', startingWeight: '15lb DBs', image: '/exercises/dumbbell-lunge.jpg' },
+            { id: 'walking-lunge-alt', name: 'Walking Lunge', startingWeight: '10lb DBs', image: '/exercises/walking-lunges.jpg' },
           ],
         },
         {
@@ -215,9 +215,9 @@ export const DEFAULT_WORKOUT_PLAN = {
           startingWeight: '15lb DBs',
           progressionNote: 'Move to 20lb when 12 reps are clean.',
           alternatives: [
-            { id: 'kb-press-alt', name: 'KB Overhead Press', startingWeight: '12kg KB' },
-            { id: 'arnold-press-alt', name: 'Arnold Press', startingWeight: '10lb DBs' },
-            { id: 'band-press-alt', name: 'Band Overhead Press', startingWeight: 'Heavy band' },
+            { id: 'kb-press-alt', name: 'KB Overhead Press', startingWeight: '12kg KB', image: '/exercises/overhead-press.jpg' },
+            { id: 'arnold-press-alt', name: 'Arnold Press', startingWeight: '10lb DBs', image: '/exercises/overhead-press.jpg' },
+            { id: 'band-press-alt', name: 'Band Overhead Press', startingWeight: 'Heavy band', image: '/exercises/overhead-press.jpg' },
           ],
         },
         {
@@ -233,9 +233,9 @@ export const DEFAULT_WORKOUT_PLAN = {
           startingWeight: '16kg KB',
           progressionNote: 'Move to 20kg once 20 reps feel controlled. 24kg available when ready.',
           alternatives: [
-            { id: 'sumo-rdl-alt', name: 'Sumo KB Deadlift', startingWeight: '20kg KB' },
-            { id: 'hip-thrust-alt', name: 'Single-Leg Hip Thrust', startingWeight: 'Bodyweight' },
-            { id: 'band-pull-through-alt', name: 'Band Pull-Through', startingWeight: 'Heavy band' },
+            { id: 'sumo-rdl-alt', name: 'Sumo KB Deadlift', startingWeight: '20kg KB', image: '/exercises/deadlift.jpg' },
+            { id: 'hip-thrust-alt', name: 'Single-Leg Hip Thrust', startingWeight: 'Bodyweight', image: '/exercises/hip-thrust.jpg' },
+            { id: 'band-pull-through-alt', name: 'Band Pull-Through', startingWeight: 'Heavy band', image: '/exercises/rdl.jpg' },
           ],
         },
         {
@@ -251,9 +251,9 @@ export const DEFAULT_WORKOUT_PLAN = {
           startingWeight: 'Light band',
           progressionNote: 'Move to heavy band when 20 reps are easy.',
           alternatives: [
-            { id: 'face-pull-alt', name: 'Band Face Pull', startingWeight: 'Heavy band' },
-            { id: 'db-rear-fly-alt', name: 'DB Rear Delt Fly', startingWeight: '10lb DBs' },
-            { id: 'seated-row-alt', name: 'Band Seated Row', startingWeight: 'Heavy band' },
+            { id: 'face-pull-alt', name: 'Band Face Pull', startingWeight: 'Heavy band', image: '/exercises/face-pulls.jpg' },
+            { id: 'db-rear-fly-alt', name: 'DB Rear Delt Fly', startingWeight: '10lb DBs', image: '/exercises/face-pull.jpg' },
+            { id: 'seated-row-alt', name: 'Band Seated Row', startingWeight: 'Heavy band', image: '/exercises/cable-rows.jpg' },
           ],
         },
         {
@@ -269,9 +269,9 @@ export const DEFAULT_WORKOUT_PLAN = {
           startingWeight: '15lb DBs',
           progressionNote: 'Move to 20lb when 12 reps are clean.',
           alternatives: [
-            { id: 'hammer-curl-alt', name: 'Hammer Curl', startingWeight: '15lb DBs' },
-            { id: 'band-curl-alt', name: 'Band Curl', startingWeight: 'Heavy band' },
-            { id: 'incline-curl-alt', name: 'Incline DB Curl', startingWeight: '10lb DBs' },
+            { id: 'hammer-curl-alt', name: 'Hammer Curl', startingWeight: '15lb DBs', image: '/exercises/hammer-curls.jpg' },
+            { id: 'band-curl-alt', name: 'Band Curl', startingWeight: 'Heavy band', image: '/exercises/barbell-curl.jpg' },
+            { id: 'incline-curl-alt', name: 'Incline DB Curl', startingWeight: '10lb DBs', image: '/exercises/db-curl.jpg' },
           ],
         },
         {
@@ -287,9 +287,9 @@ export const DEFAULT_WORKOUT_PLAN = {
           startingWeight: '15lb DB',
           progressionNote: 'Move to 20lb when 12 reps are easy.',
           alternatives: [
-            { id: 'band-pushdown-alt', name: 'Band Tricep Pushdown', startingWeight: 'Heavy band' },
-            { id: 'close-grip-pushup-alt', name: 'Close-Grip Push-Up', startingWeight: 'Bodyweight' },
-            { id: 'kb-ext-alt', name: 'KB Tricep Extension', startingWeight: '12kg KB' },
+            { id: 'band-pushdown-alt', name: 'Band Tricep Pushdown', startingWeight: 'Heavy band', image: '/exercises/tricep-pushdown.jpg' },
+            { id: 'close-grip-pushup-alt', name: 'Close-Grip Push-Up', startingWeight: 'Bodyweight', image: '/exercises/push-up.jpg' },
+            { id: 'kb-ext-alt', name: 'KB Tricep Extension', startingWeight: '12kg KB', image: '/exercises/db-tricep-ext.jpg' },
           ],
         },
         {
@@ -305,9 +305,9 @@ export const DEFAULT_WORKOUT_PLAN = {
           startingWeight: 'Bodyweight + sliders',
           progressionNote: 'Increase range of motion over time. Brutal for the core.',
           alternatives: [
-            { id: 'ab-wheel-alt', name: 'Kneeling Ab Rollout', startingWeight: 'Bodyweight' },
-            { id: 'plank-tap-alt', name: 'Plank Shoulder Tap', startingWeight: 'Bodyweight' },
-            { id: 'hollow-hold-alt', name: 'Hollow Body Hold', startingWeight: 'Bodyweight' },
+            { id: 'ab-wheel-alt', name: 'Kneeling Ab Rollout', startingWeight: 'Bodyweight', image: '/exercises/plank.jpg' },
+            { id: 'plank-tap-alt', name: 'Plank Shoulder Tap', startingWeight: 'Bodyweight', image: '/exercises/plank.jpg' },
+            { id: 'hollow-hold-alt', name: 'Hollow Body Hold', startingWeight: 'Bodyweight', image: '/exercises/plank.jpg' },
           ],
         },
         {
@@ -322,9 +322,9 @@ export const DEFAULT_WORKOUT_PLAN = {
           startingWeight: 'Weighted rope',
           progressionNote: 'Build to 15 min after 4 weeks.',
           alternatives: [
-            { id: 'jump-rope-intervals-b-alt', name: 'Jump Rope Tabata (20/10)', startingWeight: 'Weighted rope' },
-            { id: 'burpee-finisher-b-alt', name: 'Burpee Finisher (10 min)', startingWeight: 'Bodyweight' },
-            { id: 'jump-rope-steady-b-alt', name: 'Jump Rope Steady State', startingWeight: 'Weighted rope' },
+            { id: 'jump-rope-intervals-b-alt', name: 'Jump Rope Tabata (20/10)', startingWeight: 'Weighted rope', image: '/exercises/jump-rope.jpg' },
+            { id: 'burpee-finisher-b-alt', name: 'Burpee Finisher (10 min)', startingWeight: 'Bodyweight', image: '/exercises/jump-rope.jpg' },
+            { id: 'jump-rope-steady-b-alt', name: 'Jump Rope Steady State', startingWeight: 'Weighted rope', image: '/exercises/jump-rope.jpg' },
           ],
         },
       ],
@@ -349,9 +349,9 @@ export const DEFAULT_WORKOUT_PLAN = {
           startingWeight: '10lb DBs',
           progressionNote: 'Deceptively hard. Own the movement before adding weight. Move to 15lb when form is consistent.',
           alternatives: [
-            { id: 'step-up-c-alt', name: 'Step-Up (bench)', startingWeight: '15lb DBs' },
-            { id: 'reverse-lunge-c-alt', name: 'Reverse Lunge', startingWeight: '15lb DBs' },
-            { id: 'goblet-squat-c-alt', name: 'Goblet Squat (pause)', startingWeight: '16kg KB' },
+            { id: 'step-up-c-alt', name: 'Step-Up (bench)', startingWeight: '15lb DBs', image: '/exercises/dumbbell-lunge.jpg' },
+            { id: 'reverse-lunge-c-alt', name: 'Reverse Lunge', startingWeight: '15lb DBs', image: '/exercises/reverse-lunge.jpg' },
+            { id: 'goblet-squat-c-alt', name: 'Goblet Squat (pause)', startingWeight: '16kg KB', image: '/exercises/goblet-squat.jpg' },
           ],
         },
         {
@@ -367,9 +367,9 @@ export const DEFAULT_WORKOUT_PLAN = {
           startingWeight: '15lb DBs',
           progressionNote: 'Upper chest is typically weaker. Do not rush the weight.',
           alternatives: [
-            { id: 'flat-press-c-alt', name: 'Flat DB Press', startingWeight: '15lb DBs' },
-            { id: 'db-fly-c-alt', name: 'DB Fly (flat bench)', startingWeight: '10lb DBs' },
-            { id: 'pushup-plus-c-alt', name: 'Elevated Push-Up (feet on bench)', startingWeight: 'Bodyweight' },
+            { id: 'flat-press-c-alt', name: 'Flat DB Press', startingWeight: '15lb DBs', image: '/exercises/db-bench-press.jpg' },
+            { id: 'db-fly-c-alt', name: 'DB Fly (flat bench)', startingWeight: '10lb DBs', image: '/exercises/bench-press.jpg' },
+            { id: 'pushup-plus-c-alt', name: 'Elevated Push-Up (feet on bench)', startingWeight: 'Bodyweight', image: '/exercises/push-up.jpg' },
           ],
         },
         {
@@ -385,9 +385,9 @@ export const DEFAULT_WORKOUT_PLAN = {
           startingWeight: '24kg KB',
           progressionNote: 'This is the heaviest movement of the week. Two-KB option (24+20) available when ready.',
           alternatives: [
-            { id: 'db-deadlift-alt', name: 'DB Deadlift', startingWeight: '20lb DBs' },
-            { id: 'rdl-c-alt', name: 'Romanian Deadlift (KB)', startingWeight: '20kg KB' },
-            { id: 'sumo-kb-alt', name: 'Sumo KB Deadlift', startingWeight: '24kg KB' },
+            { id: 'db-deadlift-alt', name: 'DB Deadlift', startingWeight: '20lb DBs', image: '/exercises/deadlift.jpg' },
+            { id: 'rdl-c-alt', name: 'Romanian Deadlift (KB)', startingWeight: '20kg KB', image: '/exercises/rdl.jpg' },
+            { id: 'sumo-kb-alt', name: 'Sumo KB Deadlift', startingWeight: '24kg KB', image: '/exercises/deadlift.jpg' },
           ],
         },
         {
@@ -403,9 +403,9 @@ export const DEFAULT_WORKOUT_PLAN = {
           startingWeight: '10lb DBs',
           progressionNote: 'Move to 15lb when 15 reps are fully controlled.',
           alternatives: [
-            { id: 'band-pull-apart-c-alt', name: 'Band Pull-Apart', startingWeight: 'Light band' },
-            { id: 'face-pull-c-alt', name: 'Band Face Pull', startingWeight: 'Heavy band' },
-            { id: 'w-raise-c-alt', name: 'Prone W-Raise (bench)', startingWeight: '5lb DBs' },
+            { id: 'band-pull-apart-c-alt', name: 'Band Pull-Apart', startingWeight: 'Light band', image: '/exercises/face-pulls.jpg' },
+            { id: 'face-pull-c-alt', name: 'Band Face Pull', startingWeight: 'Heavy band', image: '/exercises/face-pulls.jpg' },
+            { id: 'w-raise-c-alt', name: 'Prone W-Raise (bench)', startingWeight: '5lb DBs', image: '/exercises/face-pull.jpg' },
           ],
         },
         {
@@ -421,9 +421,9 @@ export const DEFAULT_WORKOUT_PLAN = {
           startingWeight: '15lb DBs',
           progressionNote: 'Move to 20lb when 12 reps are clean.',
           alternatives: [
-            { id: 'db-curl-c-alt', name: 'Alternating DB Curl', startingWeight: '15lb DBs' },
-            { id: 'band-curl-c-alt', name: 'Band Curl', startingWeight: 'Heavy band' },
-            { id: 'cross-body-curl-c-alt', name: 'Cross-Body Curl', startingWeight: '15lb DBs' },
+            { id: 'db-curl-c-alt', name: 'Alternating DB Curl', startingWeight: '15lb DBs', image: '/exercises/db-curl.jpg' },
+            { id: 'band-curl-c-alt', name: 'Band Curl', startingWeight: 'Heavy band', image: '/exercises/barbell-curls.jpg' },
+            { id: 'cross-body-curl-c-alt', name: 'Cross-Body Curl', startingWeight: '15lb DBs', image: '/exercises/db-curl.jpg' },
           ],
         },
         {
@@ -439,9 +439,9 @@ export const DEFAULT_WORKOUT_PLAN = {
           startingWeight: '15lb DBs',
           progressionNote: 'Add ankle weights or heavier DBs when 20 clean reps are easy.',
           alternatives: [
-            { id: 'single-calf-alt', name: 'Single-Leg Calf Raise', startingWeight: 'Bodyweight' },
-            { id: 'ankle-weight-calf-alt', name: 'Ankle-Weighted Calf Raise', startingWeight: 'Ankle weights' },
-            { id: 'seated-calf-alt', name: 'Seated Calf Raise (KB on knees)', startingWeight: '20kg KB' },
+            { id: 'single-calf-alt', name: 'Single-Leg Calf Raise', startingWeight: 'Bodyweight', image: '/exercises/calf-raises.jpg' },
+            { id: 'ankle-weight-calf-alt', name: 'Ankle-Weighted Calf Raise', startingWeight: 'Ankle weights', image: '/exercises/calf-raises.jpg' },
+            { id: 'seated-calf-alt', name: 'Seated Calf Raise (KB on knees)', startingWeight: '20kg KB', image: '/exercises/calf-raises.jpg' },
           ],
         },
         {
@@ -457,9 +457,9 @@ export const DEFAULT_WORKOUT_PLAN = {
           startingWeight: 'Bodyweight',
           progressionNote: 'Add 5lb DB in extended arm when bodyweight is mastered.',
           alternatives: [
-            { id: 'bird-dog-alt', name: 'Bird-Dog', startingWeight: 'Bodyweight' },
-            { id: 'slider-mc-c-alt', name: 'Slider Mountain Climbers', startingWeight: 'Bodyweight + sliders' },
-            { id: 'kb-suitcase-alt', name: 'KB Suitcase Carry', startingWeight: '16kg KB' },
+            { id: 'bird-dog-alt', name: 'Bird-Dog', startingWeight: 'Bodyweight', image: '/exercises/plank.jpg' },
+            { id: 'slider-mc-c-alt', name: 'Slider Mountain Climbers', startingWeight: 'Bodyweight + sliders', image: '/exercises/plank.jpg' },
+            { id: 'kb-suitcase-alt', name: 'KB Suitcase Carry', startingWeight: '16kg KB', image: '/exercises/deadlift.jpg' },
           ],
         },
         {
@@ -474,9 +474,9 @@ export const DEFAULT_WORKOUT_PLAN = {
           startingWeight: 'Weighted rope',
           progressionNote: 'Build to 15 min after 4 weeks.',
           alternatives: [
-            { id: 'jump-rope-intervals-c-alt', name: 'Jump Rope Tabata (20/10)', startingWeight: 'Weighted rope' },
-            { id: 'burpee-finisher-c-alt', name: 'Burpee Finisher (10 min)', startingWeight: 'Bodyweight' },
-            { id: 'jump-rope-steady-c-alt', name: 'Jump Rope Steady State', startingWeight: 'Weighted rope' },
+            { id: 'jump-rope-intervals-c-alt', name: 'Jump Rope Tabata (20/10)', startingWeight: 'Weighted rope', image: '/exercises/jump-rope.jpg' },
+            { id: 'burpee-finisher-c-alt', name: 'Burpee Finisher (10 min)', startingWeight: 'Bodyweight', image: '/exercises/jump-rope.jpg' },
+            { id: 'jump-rope-steady-c-alt', name: 'Jump Rope Steady State', startingWeight: 'Weighted rope', image: '/exercises/jump-rope.jpg' },
           ],
         },
       ],
