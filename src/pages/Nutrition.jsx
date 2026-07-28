@@ -87,6 +87,8 @@ export default function Nutrition() {
   const [showGoalEditor, setShowGoalEditor] = useState(false)
   const [goalDraft, setGoalDraft] = useState(goals)
   const [showLogModal, setShowLogModal] = useState(false)
+  const [modalTab, setModalTab] = useState('new')
+  const [pastSearch, setPastSearch] = useState('')
   const [form, setForm] = useState({ name: '', calories: '', protein: '', carbs: '', fat: '', note: '', date: today() })
 
   const todayStr = today()
@@ -135,7 +137,35 @@ export default function Nutrition() {
 
   const openLogModal = () => {
     setForm(f => ({ ...f, date: selectedDate }))
+    setModalTab('new')
+    setPastSearch('')
     setShowLogModal(true)
+  }
+
+  // Dedupe past meals by name — keep most recent version's macros
+  const pastMeals = Object.values(
+    meals.reduce((acc, m) => {
+      const key = m.name.trim().toLowerCase()
+      if (!acc[key] || m.date > acc[key].date) acc[key] = m
+      return acc
+    }, {})
+  ).sort((a, b) => (b.date > a.date ? 1 : -1))
+
+  const filteredPast = pastSearch.trim()
+    ? pastMeals.filter(m => m.name.toLowerCase().includes(pastSearch.toLowerCase()))
+    : pastMeals
+
+  const prefillFromPast = (meal) => {
+    setForm({
+      name: meal.name,
+      calories: meal.calories || '',
+      protein: meal.protein || '',
+      carbs: meal.carbs || '',
+      fat: meal.fat || '',
+      note: meal.note || '',
+      date: selectedDate,
+    })
+    setModalTab('new')
   }
 
   const addMeal = async () => {
@@ -310,33 +340,91 @@ export default function Nutrition() {
             className="bg-zinc-900 border border-zinc-800 rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md p-5 space-y-4"
             onClick={e => e.stopPropagation()}
           >
+            {/* Modal header */}
             <div className="flex items-center justify-between">
               <p className="font-semibold text-base">Log a Meal</p>
               <button onClick={() => setShowLogModal(false)} className="text-gray-600 hover:text-white transition-colors p-1">
                 <X size={18} />
               </button>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="col-span-2">
-                <label className="label">Meal Name</label>
-                <input className="input" placeholder="e.g. Chicken & rice bowl" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} autoFocus />
-              </div>
-              <div>
-                <label className="label">Date</label>
-                <input className="input" type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
-              </div>
-              <div><label className="label">Calories</label><input className="input" type="number" placeholder="500" value={form.calories} onChange={e => setForm(f => ({ ...f, calories: e.target.value }))} /></div>
-              <div><label className="label">Protein (g)</label><input className="input" type="number" placeholder="40" value={form.protein} onChange={e => setForm(f => ({ ...f, protein: e.target.value }))} /></div>
-              <div><label className="label">Carbs (g)</label><input className="input" type="number" placeholder="60" value={form.carbs} onChange={e => setForm(f => ({ ...f, carbs: e.target.value }))} /></div>
-              <div><label className="label">Fat (g)</label><input className="input" type="number" placeholder="15" value={form.fat} onChange={e => setForm(f => ({ ...f, fat: e.target.value }))} /></div>
-              <div className="col-span-2">
-                <label className="label">Note (optional)</label>
-                <input className="input" placeholder="e.g. post-workout" value={form.note} onChange={e => setForm(f => ({ ...f, note: e.target.value }))} />
-              </div>
+
+            {/* Tabs */}
+            <div className="flex bg-zinc-800 rounded-xl p-1 gap-1">
+              <button
+                onClick={() => setModalTab('new')}
+                className={`flex-1 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                  modalTab === 'new' ? 'bg-green-500 text-black' : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                New Meal
+              </button>
+              <button
+                onClick={() => setModalTab('past')}
+                className={`flex-1 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                  modalTab === 'past' ? 'bg-green-500 text-black' : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                Past Meals
+              </button>
             </div>
-            <button onClick={addMeal} className="btn-primary w-full flex items-center justify-center gap-2">
-              <Plus size={16} /> Log Meal
-            </button>
+
+            {modalTab === 'new' ? (
+              <>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="col-span-2">
+                    <label className="label">Meal Name</label>
+                    <input className="input" placeholder="e.g. Chicken & rice bowl" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} autoFocus />
+                  </div>
+                  <div>
+                    <label className="label">Date</label>
+                    <input className="input" type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
+                  </div>
+                  <div><label className="label">Calories</label><input className="input" type="number" placeholder="500" value={form.calories} onChange={e => setForm(f => ({ ...f, calories: e.target.value }))} /></div>
+                  <div><label className="label">Protein (g)</label><input className="input" type="number" placeholder="40" value={form.protein} onChange={e => setForm(f => ({ ...f, protein: e.target.value }))} /></div>
+                  <div><label className="label">Carbs (g)</label><input className="input" type="number" placeholder="60" value={form.carbs} onChange={e => setForm(f => ({ ...f, carbs: e.target.value }))} /></div>
+                  <div><label className="label">Fat (g)</label><input className="input" type="number" placeholder="15" value={form.fat} onChange={e => setForm(f => ({ ...f, fat: e.target.value }))} /></div>
+                  <div className="col-span-2">
+                    <label className="label">Note (optional)</label>
+                    <input className="input" placeholder="e.g. post-workout" value={form.note} onChange={e => setForm(f => ({ ...f, note: e.target.value }))} />
+                  </div>
+                </div>
+                <button onClick={addMeal} className="btn-primary w-full flex items-center justify-center gap-2">
+                  <Plus size={16} /> Log Meal
+                </button>
+              </>
+            ) : (
+              <>
+                {/* Search */}
+                <input
+                  className="input"
+                  placeholder="Search past meals..."
+                  value={pastSearch}
+                  onChange={e => setPastSearch(e.target.value)}
+                  autoFocus
+                />
+                {/* Past meal list */}
+                <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+                  {filteredPast.length === 0 ? (
+                    <p className="text-center text-gray-600 text-sm py-6">No meals found</p>
+                  ) : filteredPast.map(m => (
+                    <button
+                      key={m.id}
+                      onClick={() => prefillFromPast(m)}
+                      className="w-full text-left bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 hover:border-green-500/50 rounded-xl px-4 py-3 transition-colors"
+                    >
+                      <p className="font-medium text-sm text-white">{m.name}</p>
+                      {m.note && <p className="text-xs text-gray-500 mt-0.5">{m.note}</p>}
+                      <div className="flex flex-wrap gap-1.5 mt-2">
+                        {m.calories > 0 && <span className="text-xs text-orange-400 bg-orange-400/10 px-2 py-0.5 rounded-full">{m.calories} kcal</span>}
+                        {m.protein > 0 && <span className="text-xs text-yellow-400 bg-yellow-400/10 px-2 py-0.5 rounded-full">{m.protein}g protein</span>}
+                        {m.carbs > 0 && <span className="text-xs text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded-full">{m.carbs}g carbs</span>}
+                        {m.fat > 0 && <span className="text-xs text-purple-400 bg-purple-400/10 px-2 py-0.5 rounded-full">{m.fat}g fat</span>}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
