@@ -168,7 +168,7 @@ function ExerciseCard({ exercise, onChange, completed, initialSets, swappedExerc
           }}
         >
           {/* Outer clip — one slide width */}
-          <div style={{ overflow: 'hidden' }}>
+          <div style={{ overflow: 'hidden', width: '100%' }}>
             {/* Inner strip — slides left/right */}
             <div
               style={{
