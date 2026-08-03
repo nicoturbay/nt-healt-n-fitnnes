@@ -19,15 +19,16 @@ function formatTime(meal) {
   return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
 }
 
-function MacroBar({ label, value, goal, macro }) {
+function MacroBar({ label, shortLabel, value, goal, macro }) {
   const pct = Math.min(100, goal ? Math.round((value / goal) * 100) : 0)
   const m = MACRO_COLORS[macro] || MACRO_COLORS.protein
   const over = goal && value > goal
+  const displayLabel = shortLabel || label
   return (
     <div>
-      <div className="flex justify-between text-xs mb-1">
-        <span className="text-gray-400">{label}</span>
-        <span className={`font-medium ${over ? 'text-red-400' : 'text-gray-300'}`}>{value} / {goal}</span>
+      <div className="flex justify-between text-xs mb-1 gap-2">
+        <span className="text-gray-400 flex-shrink-0">{displayLabel}</span>
+        <span className={`font-medium tabular-nums ${over ? 'text-red-400' : 'text-gray-300'}`}>{Math.round(value)} / {Math.round(goal)}</span>
       </div>
       <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
         <div className={`h-full rounded-full transition-all ${over ? 'bg-red-400' : m.bar}`} style={{ width: `${pct}%` }} />
@@ -39,11 +40,11 @@ function MacroBar({ label, value, goal, macro }) {
 function MealCard({ meal, onDelete }) {
   const time = formatTime(meal)
   return (
-    <div className="card flex justify-between items-start gap-3">
+    <div className="card flex justify-between items-start gap-3 min-w-0">
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <p className="font-medium text-sm truncate">{meal.name}</p>
-          {time && <span className="text-xs text-gray-600 flex-shrink-0">{time}</span>}
+        <div className="flex items-start gap-2">
+          <p className="font-medium text-sm break-words min-w-0 flex-1">{meal.name}</p>
+          {time && <span className="text-xs text-gray-600 flex-shrink-0 mt-0.5">{time}</span>}
         </div>
         {meal.note && <p className="text-xs text-gray-500 mt-0.5">{meal.note}</p>}
         {meal.source === 'nutrition-channel' && (
@@ -206,7 +207,7 @@ export default function Nutrition() {
   if (loading) return <div className="flex items-center justify-center py-20"><div className="text-gray-500 text-sm">Loading...</div></div>
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 overflow-x-hidden w-full">
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Nutrition</h1>
@@ -290,14 +291,14 @@ export default function Nutrition() {
         <p className="font-semibold text-sm">
           {view === 'daily' ? friendlyDate(selectedDate) : view === 'weekly' ? 'This Week' : 'This Month'}
         </p>
-        <MacroBar macro="calories" label="Calories (kcal)" value={totals.calories} goal={scaledGoals.calories} />
-        <MacroBar macro="protein"  label="Protein (g)"     value={totals.protein}  goal={scaledGoals.protein}  />
-        <MacroBar macro="carbs"    label="Carbs (g)"       value={totals.carbs}    goal={scaledGoals.carbs}    />
-        <MacroBar macro="fat"      label="Fat (g)"         value={totals.fat}      goal={scaledGoals.fat}      />
-        <div className="grid grid-cols-4 gap-2 pt-1 border-t border-gray-800">
-          {[['kcal',totals.calories,'text-orange-400'],['g pro',totals.protein,'text-yellow-400'],['g carbs',totals.carbs,'text-blue-400'],['g fat',totals.fat,'text-purple-400']].map(([unit,val,cls]) => (
+        <MacroBar macro="calories" label="Calories" value={totals.calories} goal={scaledGoals.calories} />
+        <MacroBar macro="protein"  label="Protein"  value={totals.protein}  goal={scaledGoals.protein}  />
+        <MacroBar macro="carbs"    label="Carbs"    value={totals.carbs}    goal={scaledGoals.carbs}    />
+        <MacroBar macro="fat"      label="Fat"      value={totals.fat}      goal={scaledGoals.fat}      />
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 border-t border-gray-800">
+          {[['kcal',totals.calories,'text-orange-400'],['g protein',totals.protein,'text-yellow-400'],['g carbs',totals.carbs,'text-blue-400'],['g fat',totals.fat,'text-purple-400']].map(([unit,val,cls]) => (
             <div key={unit} className="text-center">
-              <p className={`text-lg font-bold ${cls}`}>{Math.round(val)}</p>
+              <p className={`text-lg font-bold tabular-nums ${cls}`}>{Math.round(val)}</p>
               <p className="text-xs text-gray-600">{unit}</p>
             </div>
           ))}
