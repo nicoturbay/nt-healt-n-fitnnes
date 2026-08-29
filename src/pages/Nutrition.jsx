@@ -37,6 +37,33 @@ function MacroBar({ label, shortLabel, value, goal, macro }) {
   )
 }
 
+const RATING_CONFIG = {
+  excellent: { label: 'Excellent', bg: 'bg-emerald-500/15', text: 'text-emerald-400', border: 'border-emerald-500/30' },
+  good:      { label: 'Good',      bg: 'bg-green-500/15',   text: 'text-green-400',   border: 'border-green-500/30'   },
+  ok:        { label: 'OK',        bg: 'bg-yellow-500/15',  text: 'text-yellow-400',  border: 'border-yellow-500/30'  },
+  bad:       { label: 'Bad',       bg: 'bg-red-500/15',     text: 'text-red-400',     border: 'border-red-500/30'     },
+}
+
+function RatingBadge({ rating, reason }) {
+  const [showReason, setShowReason] = useState(false)
+  if (!rating) return null
+  const cfg = RATING_CONFIG[rating.toLowerCase()] || RATING_CONFIG.ok
+  return (
+    <div className="mt-2">
+      <button
+        onClick={() => setShowReason(v => !v)}
+        className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full border ${cfg.bg} ${cfg.text} ${cfg.border} transition-opacity`}
+      >
+        {cfg.label}
+        {reason && <span className="text-[10px] opacity-60">{showReason ? '▲' : '▼'}</span>}
+      </button>
+      {showReason && reason && (
+        <p className="text-xs text-gray-400 mt-1 leading-relaxed">{reason}</p>
+      )}
+    </div>
+  )
+}
+
 function MealCard({ meal, onDelete }) {
   const time = formatTime(meal)
   return (
@@ -56,6 +83,7 @@ function MealCard({ meal, onDelete }) {
           {meal.carbs > 0 && <span className="text-xs text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded-full">{meal.carbs}g carbs</span>}
           {meal.fat > 0 && <span className="text-xs text-purple-400 bg-purple-400/10 px-2 py-0.5 rounded-full">{meal.fat}g fat</span>}
         </div>
+        <RatingBadge rating={meal.rating} reason={meal.rating_reason} />
       </div>
       <button onClick={() => onDelete(meal.id)} className="text-gray-700 hover:text-red-400 transition-colors flex-shrink-0 mt-0.5">
         <Trash2 size={14} />
