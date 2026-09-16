@@ -151,7 +151,7 @@ const SCORE_WEIGHTS = {
 }
 
 function kpiTier(s) {
-  if (s >= 90) return { label: 'Elite',         color: '#f59e0b' }
+  if (s >= 90) return { label: 'Elite',         color: '#3b82f6' }
   if (s >= 75) return { label: 'Excellent',     color: '#34d399' }
   if (s >= 60) return { label: 'Good',          color: '#60a5fa' }
   if (s >= 45) return { label: 'Average',       color: '#a78bfa' }
@@ -186,7 +186,7 @@ function computeScore(data) {
 }
 
 function scoreStatus(score) {
-  if (score >= 90) return { label: 'Elite',         color: '#f59e0b' }
+  if (score >= 90) return { label: 'Elite',         color: '#3b82f6' }
   if (score >= 75) return { label: 'Excellent',     color: '#34d399' }
   if (score >= 60) return { label: 'Good',          color: '#60a5fa' }
   if (score >= 45) return { label: 'Average',       color: '#a78bfa' }
@@ -227,156 +227,176 @@ function ArcRing({ score, color }) {
   )
 }
 
-// ─── Overall Score Card ───────────────────────────────────────────────────
-function OverallScoreCard({ latest, prev }) {
+// ─── Compact Score Card (tap to drill in) ────────────────────────────────
+function ScoreCard({ title, subtitle, score, color, label, onClick }) {
+  const R = 32, C = 40, STROKE = 6
+  const circ = 2 * Math.PI * R
+  const SWEEP = 0.75
+  return (
+    <button
+      onClick={onClick}
+      className="flex-1 min-w-0 bg-zinc-900 border border-zinc-800 rounded-2xl p-4 flex flex-col items-center gap-2 hover:border-zinc-600 active:scale-[0.97] transition-all text-center"
+      style={{ borderColor: color + '33' }}
+    >
+      <svg width={C*2} height={C*2} viewBox={`0 0 ${C*2} ${C*2}`} className="shrink-0">
+        <circle cx={C} cy={C} r={R} fill="none" stroke="#27272a" strokeWidth={STROKE}
+          strokeDasharray={`${circ*SWEEP} ${circ*(1-SWEEP)}`} strokeLinecap="round"
+          transform={`rotate(-225 ${C} ${C})`} />
+        <circle cx={C} cy={C} r={R} fill="none" stroke={color} strokeWidth={STROKE}
+          strokeDasharray={`${circ*SWEEP*(score/100)} ${circ*(1-SWEEP*(score/100))}`} strokeLinecap="round"
+          transform={`rotate(-225 ${C} ${C})`}
+          style={{ transition: 'stroke-dasharray 0.8s ease' }} />
+        <text x={C} y={C+5} textAnchor="middle" fill="white" fontSize="14" fontWeight="bold" fontFamily="sans-serif">{score}</text>
+      </svg>
+      <div>
+        <div className="text-xs font-bold" style={{ color }}>{label}</div>
+        <div className="text-[11px] text-zinc-400 font-medium mt-0.5">{title}</div>
+        <div className="text-[10px] text-zinc-600 mt-0.5">{subtitle}</div>
+      </div>
+      <div className="text-[10px] text-zinc-600">tap for details ›</div>
+    </button>
+  )
+}
+
+// ─── Body Composition Detail ──────────────────────────────────────────────
+function BodyCompositionDetail({ latest, prev, onKpiClick }) {
   const { score, breakdown } = computeScore(latest)
   const { score: prevScore } = computeScore(prev)
   const status = scoreStatus(score)
-  const delta  = prev ? score - prevScore : null
-
-  // Show all KPIs, weakest first (most actionable)
-  const rows = breakdown
-
+  const delta = prev ? score - prevScore : null
   return (
-    <div
-      className="col-span-2 sm:col-span-3 lg:col-span-4 bg-zinc-900 border border-zinc-800 rounded-xl p-5"
-      style={{ borderColor: status.color + '33' }}
-    >
-      <div className="flex flex-col sm:flex-row gap-5 items-start">
-
-        {/* LEFT — arc + score + label */}
-        <div className="flex items-center gap-4 sm:flex-col sm:items-center sm:gap-2 shrink-0">
-          <ArcRing score={score} color={status.color} />
-          <div className="sm:text-center">
-            <div className="font-bold text-base" style={{ color: status.color }}>{status.label}</div>
-            <div className="text-xs text-zinc-500 mt-1">Health score · 42M</div>
-            {delta !== null && (
-              <div className={`text-xs font-medium mt-1 ${ delta >= 0 ? 'text-emerald-400' : 'text-rose-400' }`}>
-                {delta >= 0 ? '+' : ''}{delta} pts since last
-              </div>
-            )}
-          </div>
+    <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5" style={{ borderColor: status.color + '33' }}>
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <div className="font-bold text-base text-white">Body Composition</div>
+          <div className="text-xs text-zinc-500">Weakest first · tap any KPI card below for history</div>
         </div>
-
-        {/* DIVIDER */}
-        <div className="hidden sm:block w-px bg-zinc-800 self-stretch" />
-
-        {/* RIGHT — KPI breakdown, weakest first */}
-        <div className="flex-1 w-full">
-          <div className="text-xs text-zinc-500 uppercase tracking-wide mb-3">How you measure up · weakest first</div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
-            {rows.map(({ field, label, icon, unit, kpiScore, weight, value, tier }) => (
-              <div key={field}>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs text-zinc-400 flex items-center gap-1">
-                    <KpiIcon icon={KPI_LABEL[field]?.icon} size={12} className="text-zinc-500" />{label}
-                  </span>
-                  <span className="text-xs font-semibold" style={{ color: tier.color }}>
-                    {tier.label}
-                  </span>
-                </div>
-                <div className="bg-zinc-800 rounded-full h-1.5 overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all duration-700"
-                    style={{ width: `${kpiScore}%`, backgroundColor: tier.color }}
-                  />
-                </div>
-                <div className="flex justify-between text-[10px] text-zinc-700 mt-0.5">
-                  <span>{value != null ? (typeof value === 'number' && value % 1 !== 0 ? value.toFixed(1) : value) : '—'}{unit}</span>
-                  <span>{kpiScore}/100</span>
-                </div>
-              </div>
-            ))}
-          </div>
+        <div className="text-right">
+          <div className="text-2xl font-bold" style={{ color: status.color }}>{score}</div>
+          <div className="text-xs font-semibold" style={{ color: status.color }}>{status.label}</div>
+          {delta !== null && (
+            <div className={`text-xs mt-0.5 ${delta >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+              {delta >= 0 ? '+' : ''}{delta} pts since last
+            </div>
+          )}
         </div>
       </div>
-    </div>
-  )
-}
-
-// ─── Goal Progress Card ───────────────────────────────────────────────────
-function GoalProgressCard({ latest, prev }) {
-  const { score, breakdown } = computeGoalScore(latest)
-  const { score: prevScore } = computeGoalScore(prev)
-  const delta    = prev ? score - prevScore : null
-  const elapsed  = weeksElapsed()
-  const remaining = Math.max(0, TOTAL_WEEKS - elapsed)
-
-  const goalColor =
-    score >= 80 ? '#f59e0b' :
-    score >= 55 ? '#34d399' :
-    score >= 30 ? '#60a5fa' : '#a78bfa'
-
-  const goalLabel =
-    score >= 95 ? 'Fight Club Ready' :
-    score >= 75 ? 'Advanced'         :
-    score >= 50 ? 'Strong Progress'  :
-    score >= 25 ? 'Building'         : 'Getting Started'
-
-  return (
-    <div
-      className="col-span-2 sm:col-span-3 lg:col-span-4 bg-zinc-900 border border-zinc-800 rounded-xl p-5"
-      style={{ borderColor: goalColor + '33' }}
-    >
-      <div className="flex flex-col sm:flex-row gap-5 items-start">
-
-        {/* LEFT — arc + label */}
-        <div className="flex items-center gap-4 sm:flex-col sm:items-center sm:gap-2 shrink-0">
-          <ArcRing score={score} color={goalColor} />
-          <div className="sm:text-center">
-            <div className="font-bold text-base" style={{ color: goalColor }}>{goalLabel}</div>
-            <div className="text-xs text-zinc-500 mt-1">Goal progress · 22 wks</div>
-            <div className="text-xs text-zinc-600 mt-0.5">
-              {delta !== null && (
-                <span className={delta >= 0 ? 'text-emerald-400' : 'text-rose-400'}>
-                  {delta >= 0 ? '+' : ''}{delta} pts &nbsp;
-                </span>
-              )}
-              Wk {elapsed} · {remaining} left
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
+        {breakdown.map(({ field, label, unit, kpiScore, value, tier }) => (
+          <div key={field}>
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs text-zinc-400 flex items-center gap-1">
+                <KpiIcon icon={KPI_LABEL[field]?.icon} size={12} className="text-zinc-500" />{label}
+              </span>
+              <span className="text-xs font-semibold" style={{ color: tier.color }}>{tier.label}</span>
+            </div>
+            <div className="bg-zinc-800 rounded-full h-1.5 overflow-hidden">
+              <div className="h-full rounded-full transition-all duration-700" style={{ width: `${kpiScore}%`, backgroundColor: tier.color }} />
+            </div>
+            <div className="flex justify-between text-[10px] text-zinc-700 mt-0.5">
+              <span>{value != null ? (typeof value === 'number' && value % 1 !== 0 ? value.toFixed(1) : value) : '—'}{unit}</span>
+              <span>{kpiScore}/100</span>
             </div>
           </div>
-        </div>
-
-        {/* DIVIDER */}
-        <div className="hidden sm:block w-px bg-zinc-800 self-stretch" />
-
-        {/* RIGHT — KPI progress bars, lowest first */}
-        <div className="flex-1 w-full">
-          <div className="text-xs text-zinc-500 uppercase tracking-wide mb-3">Progress toward Fight Club · furthest behind first</div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
-            {breakdown.map(({ field, label, icon, unit, progress, weight, current, target }) => {
-              const pct = Math.round(progress * 100)
-              const barColor =
-                pct >= 75 ? '#34d399' :
-                pct >= 45 ? '#60a5fa' :
-                pct >= 20 ? '#fb923c' : '#f87171'
-              return (
-                <div key={field}>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs text-zinc-400 flex items-center gap-1">
-                      <KpiIcon icon={KPI_LABEL[field]?.icon} size={12} className="text-zinc-500" />{label}
-                    </span>
-                    <span className="text-xs font-semibold" style={{ color: barColor }}>{pct}%</span>
-                  </div>
-                  <div className="bg-zinc-800 rounded-full h-1.5 overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all duration-700"
-                      style={{ width: `${pct}%`, backgroundColor: barColor }}
-                    />
-                  </div>
-                  <div className="flex justify-between text-[10px] text-zinc-700 mt-0.5">
-                    <span>{current != null ? (typeof current === 'number' && current % 1 !== 0 ? current.toFixed(1) : current) : '—'}{unit}</span>
-                    <span>Target: {target}{unit}</span>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   )
 }
+
+// ─── Goal Progress Detail ─────────────────────────────────────────────────
+function GoalProgressDetail({ latest, prev }) {
+  const { score, breakdown } = computeGoalScore(latest)
+  const { score: prevScore } = computeGoalScore(prev)
+  const delta = prev ? score - prevScore : null
+  const elapsed = weeksElapsed()
+  const remaining = Math.max(0, TOTAL_WEEKS - elapsed)
+  const goalColor = score >= 80 ? '#3b82f6' : score >= 55 ? '#34d399' : score >= 30 ? '#60a5fa' : '#a78bfa'
+  const goalLabel = score >= 95 ? 'Fight Club Ready' : score >= 75 ? 'Advanced' : score >= 50 ? 'Strong Progress' : score >= 25 ? 'Building' : 'Getting Started'
+  return (
+    <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5" style={{ borderColor: goalColor + '33' }}>
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <div className="font-bold text-base text-white">Goal Progress</div>
+          <div className="text-xs text-zinc-500">Wk {elapsed} of {TOTAL_WEEKS} · {remaining} wks left · furthest behind first</div>
+        </div>
+        <div className="text-right">
+          <div className="text-2xl font-bold" style={{ color: goalColor }}>{score}</div>
+          <div className="text-xs font-semibold" style={{ color: goalColor }}>{goalLabel}</div>
+          {delta !== null && (
+            <div className={`text-xs mt-0.5 ${delta >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+              {delta >= 0 ? '+' : ''}{delta} pts since last
+            </div>
+          )}
+        </div>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
+        {breakdown.map(({ field, label, unit, progress, current, target }) => {
+          const pct = Math.round(progress * 100)
+          const barColor = pct >= 75 ? '#34d399' : pct >= 45 ? '#60a5fa' : pct >= 20 ? '#fb923c' : '#f87171'
+          return (
+            <div key={field}>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs text-zinc-400 flex items-center gap-1">
+                  <KpiIcon icon={KPI_LABEL[field]?.icon} size={12} className="text-zinc-500" />{label}
+                </span>
+                <span className="text-xs font-semibold" style={{ color: barColor }}>{pct}%</span>
+              </div>
+              <div className="bg-zinc-800 rounded-full h-1.5 overflow-hidden">
+                <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, backgroundColor: barColor }} />
+              </div>
+              <div className="flex justify-between text-[10px] text-zinc-700 mt-0.5">
+                <span>{current != null ? (typeof current === 'number' && current % 1 !== 0 ? current.toFixed(1) : current) : '—'}{unit}</span>
+                <span>Target: {target}{unit}</span>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+// ─── Nutrition Detail ─────────────────────────────────────────────────────
+function NutritionDetail({ todayMacros }) {
+  const GOALS = { cal: 2500, protein: 180, carbs: 280, fat: 80 }
+  const items = [
+    { label: 'Calories', val: todayMacros.cal,     goal: GOALS.cal,     unit: 'kcal', color: '#f97316' },
+    { label: 'Protein',  val: todayMacros.protein, goal: GOALS.protein, unit: 'g',    color: '#3b82f6' },
+    { label: 'Carbs',    val: todayMacros.carbs,   goal: GOALS.carbs,   unit: 'g',    color: '#eab308' },
+    { label: 'Fat',      val: todayMacros.fat,     goal: GOALS.fat,     unit: 'g',    color: '#f43f5e' },
+  ]
+  return (
+    <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <div className="font-bold text-base text-white">Today's Nutrition</div>
+          <div className="text-xs text-zinc-500">Progress toward daily goals</div>
+        </div>
+      </div>
+      <div className="space-y-3">
+        {items.map(({ label, val, goal, unit, color }) => {
+          const pct = Math.min(100, Math.round((val / goal) * 100))
+          const over = val > goal
+          return (
+            <div key={label}>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs text-zinc-400">{label}</span>
+                <span className="text-xs font-semibold tabular-nums" style={{ color: over ? '#f87171' : color }}>
+                  {Math.round(val)} / {goal}{unit}
+                </span>
+              </div>
+              <div className="bg-zinc-800 rounded-full h-1.5 overflow-hidden">
+                <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, backgroundColor: over ? '#f87171' : color }} />
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 
 function trend(curr, prev, key) {
   if (!prev || prev[key] == null || curr[key] == null) return null
@@ -677,6 +697,8 @@ export default function Dashboard() {
   const [meals, setMeals] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeKpi, setActiveKpi] = useState(null)
+  // null = overview, 'body' | 'goal' | 'nutrition' = detail view
+  const [activeScore, setActiveScore] = useState(null)
 
   useEffect(() => {
     async function load() {
@@ -712,7 +734,7 @@ export default function Dashboard() {
     { cal: 0, protein: 0, carbs: 0, fat: 0 }
   )
 
-  const GOALS = { cal: 2400, protein: 165, carbs: 240, fat: 70 }
+  const GOALS = { cal: 2500, protein: 180, carbs: 280, fat: 80 }
 
   const handleKpiClick = useCallback((field) => setActiveKpi(field), [])
   const handleClose = useCallback(() => setActiveKpi(null), [])
@@ -725,31 +747,73 @@ export default function Dashboard() {
     'bone_mass_lb', 'bmr_kcal', 'protein_pct', 'metabolic_age', 'bmi',
   ]
 
+  // Compute scores for the 3 cards
+  const { score: bodyScore } = computeScore(latest)
+  const bodyStatus = scoreStatus(bodyScore)
+
+  const { score: goalScore } = computeGoalScore(latest)
+  const goalColor = goalScore >= 80 ? '#3b82f6' : goalScore >= 55 ? '#34d399' : goalScore >= 30 ? '#60a5fa' : '#a78bfa'
+  const goalLabel = goalScore >= 95 ? 'Fight Club Ready' : goalScore >= 75 ? 'Advanced' : goalScore >= 50 ? 'Strong Progress' : goalScore >= 25 ? 'Building' : 'Getting Started'
+
+  const nutritionPct = Math.round(
+    (Math.min(todayMacros.cal / GOALS.cal, 1) +
+     Math.min(todayMacros.protein / GOALS.protein, 1) +
+     Math.min(todayMacros.carbs / GOALS.carbs, 1) +
+     Math.min(todayMacros.fat / GOALS.fat, 1)) / 4 * 100
+  )
+  const nutritionLabel = nutritionPct >= 80 ? 'On Track' : nutritionPct >= 50 ? 'Partial' : nutritionPct > 0 ? 'Getting Started' : 'Not Started'
+  const nutritionColor = nutritionPct >= 80 ? '#34d399' : nutritionPct >= 50 ? '#60a5fa' : nutritionPct > 0 ? '#fb923c' : '#71717a'
+
   return (
     <>
       <div className="w-full px-6 py-4 space-y-6">
 
-        <div>
-          <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-          <p className="text-zinc-500 text-sm mt-1">
-            {latest
-              ? `Last weigh-in: ${latest.date} at ${latest.time?.slice(0, 5) ?? ''}`
-              : 'No weigh-in data yet. Send your scale screenshot to #data-input.'}
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-white">Dashboard</h1>
+            <p className="text-zinc-500 text-sm mt-1">
+              {latest
+                ? `Last weigh-in: ${latest.date} at ${latest.time?.slice(0, 5) ?? ''}`
+                : 'No weigh-in data yet. Send your scale screenshot to #data-input.'}
+            </p>
+          </div>
+          {activeScore && (
+            <button
+              onClick={() => setActiveScore(null)}
+              className="text-xs text-zinc-500 hover:text-white flex items-center gap-1 transition-colors"
+            >
+              ← Overview
+            </button>
+          )}
         </div>
 
-        {/* Body Composition Grid */}
+        {/* ── Three Score Cards (always visible) ── */}
         {latest ? (
-          <div>
-            <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wide mb-3">Body Composition</h2>
-            <p className="text-xs text-zinc-600 mb-3">Tap any card to see your progress over time.</p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-              <OverallScoreCard latest={latest} prev={prev} />
-              <GoalProgressCard latest={latest} prev={prev} />
-              {bodyKpis.map(field => (
-                <KPICard key={field} field={field} value={latest[field]} prev={prev} onClick={handleKpiClick} />
-              ))}
-            </div>
+          <div className="flex gap-3">
+            <ScoreCard
+              title="Body Composition"
+              subtitle="Health score"
+              score={bodyScore}
+              color={bodyStatus.color}
+              label={bodyStatus.label}
+              onClick={() => setActiveScore(activeScore === 'body' ? null : 'body')}
+            />
+            <ScoreCard
+              title="Goal Progress"
+              subtitle="Fight Club"
+              score={goalScore}
+              color={goalColor}
+              label={goalLabel}
+              onClick={() => setActiveScore(activeScore === 'goal' ? null : 'goal')}
+            />
+            <ScoreCard
+              title="Nutrition"
+              subtitle="Today's goals"
+              score={nutritionPct}
+              color={nutritionColor}
+              label={nutritionLabel}
+              onClick={() => setActiveScore(activeScore === 'nutrition' ? null : 'nutrition')}
+            />
           </div>
         ) : (
           <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 text-center text-zinc-500">
@@ -757,35 +821,29 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Today's Nutrition */}
-        <div>
-          <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wide mb-3">Today's Nutrition</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {[
-              { label: 'Calories', val: todayMacros.cal,     goal: GOALS.cal,     unit: 'kcal', color: 'text-orange-400' },
-              { label: 'Protein',  val: todayMacros.protein, goal: GOALS.protein, unit: 'g',    color: 'text-blue-400'   },
-              { label: 'Carbs',    val: todayMacros.carbs,   goal: GOALS.carbs,   unit: 'g',    color: 'text-yellow-400' },
-              { label: 'Fat',      val: todayMacros.fat,     goal: GOALS.fat,     unit: 'g',    color: 'text-rose-400'   },
-            ].map(({ label, val, goal, unit, color }) => {
-              const pct = Math.min(100, Math.round((val / goal) * 100))
-              return (
-                <div key={label} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-                  <div className="text-xs text-zinc-500 uppercase tracking-wide mb-1">{label}</div>
-                  <div className={`text-xl font-bold ${color}`}>
-                    {Math.round(val)}<span className="text-sm font-normal text-zinc-500 ml-1">{unit}</span>
-                  </div>
-                  <div className="mt-2 bg-zinc-800 rounded-full h-1.5 overflow-hidden">
-                    <div className={`h-full rounded-full bg-current ${color}`} style={{ width: `${pct}%` }} />
-                  </div>
-                  <div className="text-xs text-zinc-600 mt-1">{pct}% of {goal}{unit}</div>
-                </div>
-              )
-            })}
+        {/* ── Detail panels (slide in below score cards) ── */}
+        {latest && activeScore === 'body' && (
+          <BodyCompositionDetail latest={latest} prev={prev} onKpiClick={handleKpiClick} />
+        )}
+        {latest && activeScore === 'goal' && (
+          <GoalProgressDetail latest={latest} prev={prev} />
+        )}
+        {activeScore === 'nutrition' && (
+          <NutritionDetail todayMacros={todayMacros} />
+        )}
+
+        {/* ── KPI Cards (always below, tap for history chart) ── */}
+        {latest && (
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wide mb-3">Metrics</h2>
+            <p className="text-xs text-zinc-600 mb-3">Tap any card to see your progress over time.</p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+              {bodyKpis.map(field => (
+                <KPICard key={field} field={field} value={latest[field]} prev={prev} onClick={handleKpiClick} />
+              ))}
+            </div>
           </div>
-          {meals.length > 0 && (
-            <div className="mt-3 text-xs text-zinc-500">{meals.length} meal{meals.length !== 1 ? 's' : ''} logged today</div>
-          )}
-        </div>
+        )}
 
       </div>
 

@@ -58,7 +58,17 @@ function SwapPanel({ exercise, currentId, onSelect, onClose }) {
 // ExerciseCard — input only, no log button
 function ExerciseCard({ exercise, onChange, completed, initialSets, swappedExercise, onSwapOpen, showSwap, onSwapClose, onSwapSelect }) {
   const displayExercise = swappedExercise
-    ? { ...exercise, ...swappedExercise, id: exercise.id, alternatives: exercise.alternatives, category: exercise.category, muscleGroup: exercise.muscleGroup }
+    ? {
+        ...exercise,
+        ...swappedExercise,
+        // Explicitly clear images that aren't defined on the alt — don't bleed originals through
+        image: swappedExercise.image ?? null,
+        muscleImage: swappedExercise.muscleImage ?? null,
+        id: exercise.id,
+        alternatives: exercise.alternatives,
+        category: exercise.category,
+        muscleGroup: exercise.muscleGroup,
+      }
     : exercise
 
   const meta = CATEGORY_META[exercise.category] || CATEGORY_META.chest
@@ -67,6 +77,11 @@ function ExerciseCard({ exercise, onChange, completed, initialSets, swappedExerc
 
   const [gallerySlide, setGallerySlide] = useState(0)
   const touchStartX = useRef(null)
+
+  // Reset gallery to slide 0 whenever the exercise is swapped
+  useEffect(() => {
+    setGallerySlide(0)
+  }, [swappedExercise])
 
   const [sets, setSets] = useState(
     initialSets?.length
@@ -551,21 +566,21 @@ export default function Workout() {
   return (
     <div className="space-y-5">
       {/* Header with date navigation */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <span className={`text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0 ${
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-bold leading-tight">{workout.name}</h1>
+          <p className="text-gray-500 text-sm mt-0.5">
+            {selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })} · {workout.focus}
+          </p>
+        </div>
+        <div className="flex flex-col items-end gap-2 flex-shrink-0">
+          <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
             isToday ? 'bg-green-500/20 text-green-400' : isFuture ? 'bg-blue-500/20 text-blue-400' : 'bg-gray-800 text-gray-400'
           }`}>
             {dayLabel}
           </span>
-          <div>
-            <h1 className="text-2xl font-bold leading-tight">{workout.name}</h1>
-            <p className="text-gray-500 text-sm">
-              {selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })} · {workout.focus}
-            </p>
-          </div>
+          {navControls}
         </div>
-        {navControls}
       </div>
 
       {workoutPlan.note && (
