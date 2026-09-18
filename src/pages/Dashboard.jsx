@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import {
   X, Scale, BarChart2, Flame, Dumbbell, Zap, Activity,
-  Droplets, Layers, Shield, Heart, Beef, Clock
+  Droplets, Layers, Shield, Heart, Beef, Clock,
+  ChevronRight, ChevronLeft
 } from 'lucide-react'
 
 function KpiIcon({ icon: Icon, size = 16, className = '' }) {
@@ -645,7 +646,7 @@ function KPIModal({ field, meta, onClose }) {
   )
 }
 
-// ─── KPI Card ─────────────────────────────────────────────────────────────
+// ─── KPI Card (full-width stacked) ───────────────────────────────────────
 function kpiCardColors(t, good) {
   if (!t || t.dir === 'flat' || good === 'stable') return {
     bg: 'bg-yellow-500/5', border: 'border-yellow-500/20', icon: 'text-yellow-500/50'
@@ -666,27 +667,124 @@ function KPICard({ field, value, prev, onClick }) {
   return (
     <button
       onClick={() => onClick(field)}
-      className={`${colors.bg} border ${colors.border} rounded-xl p-4 flex flex-col gap-1 text-left hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer w-full`}
+      className={`${colors.bg} border ${colors.border} rounded-xl px-4 py-3.5 flex items-start gap-3 text-left hover:brightness-110 active:scale-[0.99] transition-all cursor-pointer w-full`}
     >
-      <div className="flex items-center justify-between">
-        <span className="text-xs text-zinc-400 uppercase tracking-wide">{meta.label}</span>
-        <KpiIcon icon={meta.icon} size={15} className={colors.icon} />
+      {/* Metric icon */}
+      <div className="mt-0.5 flex-shrink-0">
+        <KpiIcon icon={meta.icon} size={16} className={colors.icon} />
       </div>
-      <div className="flex items-end gap-2">
-        <span className="text-2xl font-bold text-white">
-          {formatted ?? '—'}
-          <span className="text-sm font-normal text-zinc-500 ml-1">{meta.unit}</span>
-        </span>
-        {t && (
-          <span className={`text-sm font-medium pb-0.5 ${trendColor(t.dir, meta.good)}`}>
-            {trendArrow(t.dir)} {Math.abs(t.delta).toFixed(1)}
+
+      {/* Label + value + target */}
+      <div className="flex-1 min-w-0">
+        <div className="text-xs text-zinc-400 uppercase tracking-wide leading-none mb-1.5">{meta.label}</div>
+        <div className="flex items-end gap-2">
+          <span className="text-xl font-bold text-white leading-none">
+            {formatted ?? '—'}
+            <span className="text-sm font-normal text-zinc-500 ml-1">{meta.unit}</span>
           </span>
+          {t && (
+            <span className={`text-xs font-medium pb-px ${trendColor(t.dir, meta.good)}`}>
+              {trendArrow(t.dir)} {Math.abs(t.delta).toFixed(1)}
+            </span>
+          )}
+        </div>
+        {meta.target != null && (
+          <div className="text-xs text-zinc-600 mt-1">Target: {meta.target}{meta.unit}</div>
         )}
       </div>
-      {meta.target != null && (
-        <div className="text-xs text-zinc-600 mt-1" title={meta.note}>Target: {meta.target}{meta.unit}</div>
-      )}
+
+      {/* Right-pointing arrow — top-right, aligned with label */}
+      <ChevronRight size={16} className="text-zinc-600 flex-shrink-0 mt-0.5" />
     </button>
+  )
+}
+
+// ─── KPI Detail Page (2nd level, replaces modal) ──────────────────────────
+function KPIDetailPage({ field, meta, onBack }) {
+  const [history, setHistory] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    supabase
+      .from('body_composition_logs')
+      .select('*')
+      .order('date', { ascending: true })
+      .then(({ data }) => {
+        setHistory((data || []).filter(d => d[field] != null))
+        setLoading(false)
+      })
+  }, [field])
+
+  const first = history[0]
+  const last  = history[history.length - 1]
+  const totalDelta = first && last ? last[field] - first[field] : null
+  const t = totalDelta != null ? trend({ [field]: last?.[field] }, { [field]: first?.[field] }, field) : null
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black overflow-y-auto">
+      {/* Sticky back bar */}
+      <div className="sticky top-0 z-10 bg-black/90 backdrop-blur-sm border-b border-zinc-800 px-4 py-3">
+        <button
+          onClick={onBack}
+          className="flex items-center gap-1 text-sm font-medium text-zinc-300 hover:text-white transition-colors"
+        >
+          <ChevronLeft size={18} />
+          Back
+        </button>
+      </div>
+
+      {/* Page content */}
+      <div className="px-6 py-5 space-y-5 max-w-xl mx-auto pb-12">
+        {/* Header */}
+        <div>
+          <div className="flex items-center gap-2.5 mb-1">
+            <KpiIcon icon={meta.icon} size={22} className="text-zinc-400" />
+            <h1 className="text-xl font-bold text-white">{meta.label}</h1>
+            {meta.unit && <span className="text-zinc-500 text-sm">({meta.unit})</span>}
+          </div>
+          {meta.target != null && (
+            <p className="text-xs text-zinc-500">
+              Target: {meta.target}{meta.unit}
+              {meta.note && <span className="text-zinc-600"> · {meta.note}</span>}
+            </p>
+          )}
+        </div>
+
+        {/* Summary stats */}
+        {!loading && history.length >= 2 && (
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { label: 'First',  value: first?.[field] },
+              { label: 'Latest', value: last?.[field] },
+              { label: 'Change', value: totalDelta, isChange: true },
+            ].map(({ label, value, isChange }) => (
+              <div key={label} className="bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-center">
+                <p className="text-xs text-zinc-500 mb-1">{label}</p>
+                <p className={`text-base font-bold ${isChange && t ? trendColor(t.dir, meta.good) : 'text-white'}`}>
+                  {isChange
+                    ? `${value > 0 ? '+' : ''}${typeof value === 'number' ? value.toFixed(1) : value}`
+                    : typeof value === 'number' && value % 1 !== 0 ? value.toFixed(1) : value
+                  }{meta.unit}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Chart */}
+        {loading ? (
+          <div className="flex items-center justify-center h-40 text-zinc-600 text-sm">Loading...</div>
+        ) : (
+          <TimelineChart data={history} field={field} meta={meta} />
+        )}
+
+        {!loading && (
+          <p className="text-xs text-zinc-600 text-center">
+            {history.length} data point{history.length !== 1 ? 's' : ''}
+          </p>
+        )}
+      </div>
+    </div>
   )
 }
 
@@ -837,7 +935,7 @@ export default function Dashboard() {
           <div>
             <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wide mb-3">Metrics</h2>
             <p className="text-xs text-zinc-600 mb-3">Tap any card to see your progress over time.</p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+            <div className="space-y-2">
               {bodyKpis.map(field => (
                 <KPICard key={field} field={field} value={latest[field]} prev={prev} onClick={handleKpiClick} />
               ))}
@@ -847,9 +945,9 @@ export default function Dashboard() {
 
       </div>
 
-      {/* KPI Timeline Modal */}
+      {/* KPI Detail Page */}
       {activeKpi && KPI_LABEL[activeKpi] && (
-        <KPIModal field={activeKpi} meta={KPI_LABEL[activeKpi]} onClose={handleClose} />
+        <KPIDetailPage field={activeKpi} meta={KPI_LABEL[activeKpi]} onBack={handleClose} />
       )}
     </>
   )
